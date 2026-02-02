@@ -1,547 +1,200 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Holiday Inn — Room Inspection Checklist</title>
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Holiday Inn">
-
-<style>
-  :root{
-    --bg:#f7f8fb;
-    --card:#ffffff;
-    --text:#1f2937;
-    --muted:#6b7280;
-    --shadow:0 10px 25px rgba(15,23,42,.18);
-    --radius:22px;
-
-    --p1:#bfe3ff;  /* blue */
-    --p2:#ffd6e7;  /* pink */
-    --p3:#d8ffd6;  /* green */
-    --p4:#fff2bf;  /* yellow */
-    --p5:#e6d6ff;  /* purple */
-    --ring:#9acbff;
-
-    --hubNotesBg:#f6f1ff;
-    --hubNotesBorder:#e6ddff;
-  }
-
-  *{box-sizing:border-box;}
-
-  body{
-    margin:0;
-    padding:18px;
-    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    background:linear-gradient(135deg,#f5f7ff,#e5f6ff);
-    color:var(--text);
-  }
-
-  .wrapper{ max-width:1040px; margin:0 auto; }
-
-  h1{
-    text-align:center;
-    margin:6px 0 2px;
-    font-size:1.8rem;
-    letter-spacing:.04em;
-  }
-
-  .subtitle{
-    text-align:center;
-    font-size:.9rem;
-    color:var(--muted);
-    margin-bottom:10px;
-  }
-
-  .date-row{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:8px;
-    margin-bottom:12px;
-    font-size:.9rem;
-  }
-  .date-row label{ font-weight:600; }
-  .date-row input[type="date"]{
-    padding:4px 8px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.7);
-    font-size:.9rem;
-    background:#f9fafb;
-  }
-  .date-row input[type="date"]:focus{
-    outline:none;
-    border-color:var(--ring);
-    box-shadow:0 0 0 2px rgba(154,203,255,.55);
-    background:#fff;
-  }
-
-  .card{
-    background:var(--card);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:16px 16px 20px;
-    border:1px solid rgba(148,163,184,.35);
-    overflow:hidden;
-  }
-
-  .card-header-band{
-    background:linear-gradient(90deg,#e5edff,#fdf2ff);
-    margin:-16px -16px 16px;
-    padding:10px 16px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-
-  .card-header-text{
-    font-size:.82rem;
-    color:var(--muted);
-    flex:1 1 420px;
-  }
-
-  .header-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-  }
-
-  .btn-pill{
-    border:none;
-    border-radius:999px;
-    padding:7px 15px;
-    font-size:.8rem;
-    font-weight:600;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    white-space:nowrap;
-    box-shadow:0 6px 14px rgba(59,130,246,.35);
-    transition:transform .08s ease, box-shadow .08s ease, opacity .08s ease;
-  }
-  .btn-pill span.icon{font-size:.9rem;}
-  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
-
-  .btn-print{ background:#2563eb; color:#fff; }
-  .btn-clear{ background:#fee2e2; color:#991b1b; box-shadow:0 6px 14px rgba(248,113,113,.35); }
-  .btn-sync{ background:#e0f2fe; color:#075985; box-shadow:0 6px 14px rgba(14,165,233,.28); }
-
-  .sync-dot{
-    width:9px;height:9px;border-radius:999px;
-    background:#94a3b8;
-    display:inline-block;
-  }
-  .sync-dot.ok{ background:#22c55e; }
-  .sync-dot.bad{ background:#ef4444; }
-  .sync-dot.busy{ background:#f59e0b; }
-
-  .tabs{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-bottom:12px;
-    justify-content:center;
-  }
-
-  .tab-btn{
-    flex:1 1 90px;
-    border:none;
-    border-radius:999px;
-    padding:8px 14px;
-    font-size:.9rem;
-    cursor:pointer;
-    background:#e5ecff;
-    color:#1f2937;
-    max-width:160px;
-    transition:transform .1s ease, box-shadow .1s ease, background .1s ease, color .1s ease;
-  }
-  .tab-btn[data-floor="2"]{ background:rgba(191,227,255,.9); }
-  .tab-btn[data-floor="3"]{ background:rgba(255,214,231,.95); }
-  .tab-btn[data-floor="4"]{ background:rgba(216,255,214,.95); }
-  .tab-btn[data-floor="5"]{ background:rgba(255,242,191,.95); }
-
-  .tab-btn.active{
-    background:#2563eb;
-    color:#fff;
-    box-shadow:0 6px 14px rgba(37,99,235,.45);
-    transform:translateY(-1px);
-    font-weight:600;
-  }
-  .tab-btn:active{ transform:translateY(0); box-shadow:none; }
-
-  .floor-blurb{ margin-bottom:6px; }
-  .floor-title{ font-size:1.05rem; font-weight:600; margin-bottom:4px; }
-
-  .badge-row{
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-    font-size:.72rem;
-    padding:2px 9px;
-    border-radius:999px;
-    margin-left:6px;
-  }
-  .badge-2{ background:var(--p1); }
-  .badge-3{ background:var(--p2); }
-  .badge-4{ background:var(--p3); }
-  .badge-5{ background:var(--p4); }
-
-  .helper-text{ font-size:.8rem; color:var(--muted); }
-
-  .table-wrap{
-    max-height:72vh;
-    overflow:auto;
-    border-radius:16px;
-    border:1px solid rgba(148,163,184,.35);
-  }
-
-  table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:.9rem;
-    background:#fff;
-  }
-
-  thead{
-    position:sticky;
-    top:0;
-    background:#eef2ff;
-    z-index:1;
-  }
-
-  th,td{
-    padding:7px 6px;
-    text-align:left;
-    vertical-align:top;
-  }
-
-  th{
-    font-size:.78rem;
-    text-transform:uppercase;
-    letter-spacing:.04em;
-    color:#4b5563;
-    border-bottom:1px solid #c7d2fe;
-    background:#eef2ff;
-  }
-
-  tbody tr:nth-child(even) td{ background:#f9fafb; }
-  tbody tr:nth-child(odd) td{ background:#ffffff; }
-  tbody tr:hover td{ background:#f1f5ff; }
-
-  .room-col{ width:70px; font-weight:600; white-space:nowrap; }
-  .check-col{ width:80px; text-align:center; }
-  .notes-col{ width:auto; }
-
-  .notes-input{
-    width:100%;
-    min-width:140px;
-    padding:5px 7px;
-    border-radius:12px;
-    border:1px solid var(--hubNotesBorder);
-    font-size:.85rem;
-    background:var(--hubNotesBg);
-    resize:none;
-    overflow:hidden;
-    line-height:1.3;
-  }
-  .notes-input:focus{
-    outline:none;
-    border-color:var(--ring);
-    box-shadow:0 0 0 2px rgba(154,203,255,.55);
-    background:#fff;
-  }
-
-  .check-wrap{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding-top:2px;
-  }
-  .check-wrap input[type="checkbox"]{ width:17px; height:17px; accent-color:#2563eb; }
-
-  @media (max-width:700px){
-    body{ padding:10px; }
-    .card{ padding:12px 12px 16px; }
-    th,td{ padding:6px 4px; font-size:.8rem; }
-    .notes-input{ font-size:.8rem; }
-    .card-header-band{ flex-direction:column; align-items:flex-start; }
-    .header-actions{ align-self:flex-end; }
-  }
-
-  @media print{
-    body{ background:#fff; padding:0; margin:0; }
-    .subtitle, .tabs, .card-header-band, .tab-btn, .btn-pill{ display:none !important; }
-    .wrapper{ max-width:none; margin:0; }
-    .card{ box-shadow:none; border:none; padding:0; margin:0; }
-    .table-wrap{ max-height:none; overflow:visible; border-radius:0; border:none; }
-    h1{ font-size:1.4rem; margin:0 0 4px 0; text-align:left; }
-    .date-row{ justify-content:flex-start; margin:0 0 6px 0; }
-    .date-row input[type="date"]{ border:none; padding:0 4px; border-radius:0; background:#fff; box-shadow:none; }
-    table{ font-size:.85rem; }
-    th,td{ padding:6px 4px; }
-    tbody tr:nth-child(even) td, tbody tr:nth-child(odd) td{ background:#ffffff; }
-    .notes-input{ background:#fff; border:1px solid #d1d5db; min-height:40px; }
-  }
-</style>
-</head>
-
-<body>
-<div class="wrapper">
-  <h1>The Holiday Inn — Room Inspection</h1>
-  <div class="subtitle">
-    Select a floor, mark <strong>Passed / Failed / Not Inspected</strong>, and record any violations or notes.
-  </div>
-
-  <div class="date-row">
-    <label for="inspectionDate">Inspection Date:</label>
-    <input type="date" id="inspectionDate">
-  </div>
-
-  <div class="card">
-    <div class="card-header-band">
-      <div class="card-header-text">
-        This version saves to your Google Sheet (cloud). Use <strong>Create PDF</strong> when you’re ready to file/save a PDF.
-        <span style="margin-left:10px; display:inline-flex; align-items:center; gap:6px;">
-          <span id="syncDot" class="sync-dot"></span>
-          <span id="syncText">Not synced yet</span>
-        </span>
-      </div>
-
-      <div class="header-actions">
-        <button class="btn-pill btn-sync" type="button" id="btnSyncNow">
-          <span class="icon">☁️</span><span>Sync Now</span>
-        </button>
-
-        <button class="btn-pill btn-print" type="button" id="btnPrintFloor">
-          <span class="icon">🖨️</span><span>Create PDF</span>
-        </button>
-
-        <button class="btn-pill btn-clear" type="button" id="btnClearFloor">
-          <span class="icon">🧹</span><span>Clear Floor</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn active" data-floor="2">2nd Floor (200s)</button>
-      <button class="tab-btn" data-floor="3">3rd Floor (300s)</button>
-      <button class="tab-btn" data-floor="4">4th Floor (400s)</button>
-      <button class="tab-btn" data-floor="5">5th Floor (500s)</button>
-    </div>
-
-    <div class="floor-blurb" id="floorBlurb">
-      <div class="floor-title">
-        2nd Floor — 200 Rooms
-        <span class="badge-row badge-2">Rooms 201–212, 214–226, 230–233</span>
-      </div>
-      <div class="helper-text">
-        Select one status per room and add notes for any violations or comments.
-      </div>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th class="room-col">ROOM #</th>
-            <th class="check-col">PASSED</th>
-            <th class="check-col">FAILED</th>
-            <th class="check-col">NOT<br>INSPECTED</th>
-            <th class="notes-col">NOTES / VIOLATIONS</th>
-          </tr>
-        </thead>
-        <tbody id="floorBody"></tbody>
-      </table>
-    </div>
-
-  </div>
-</div>
-
 <script>
-/** ===============================
- *  SETTINGS
- * =============================== */
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
-const STATE_KEY   = "holiday_inn_inspection_state_v1";
+/**
+ * Holiday Inn Room Log — Cloud Sync + Local Cache
+ * - Cloud: Google Apps Script web app (Sheet "STATE")
+ * - Local: localStorage cache (for offline / fast loads)
+ */
 
-/** ===============================
- *  UI helpers
- * =============================== */
-function setSyncStatus(mode, text){
-  const dot = document.getElementById("syncDot");
-  const label = document.getElementById("syncText");
-  dot.classList.remove("ok","bad","busy");
-  if(mode) dot.classList.add(mode);
-  label.textContent = text || "";
-}
+// ✅ PASTE YOUR WEB APP URL HERE:
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
 
+// ✅ This is the record key stored in your STATE sheet:
+const STATE_KEY = "holiday_inn_inspection_state_v1";
+
+// ✅ local cache key (per device)
+const CACHE_KEY = "holiday_inn_roomlog_cache_v1";
+
+// Debounce saving so we don't spam the server
+let saveTimer = null;
+let inFlight = false;
+
+// ---- STATE MODEL ----
+// We store everything in one object:
+let state = {
+  inspectionDate: "",        // yyyy-mm-dd
+  floors: {                  // floor -> rooms -> record
+    "2": {},
+    "3": {},
+    "4": {},
+    "5": {}
+  }
+};
+
+// ---------- UI HELPERS ----------
 function autoResize(el){
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
 
-function range(start,end){
-  const out=[];
+function jsonSafeParse(str, fallback){
+  try { return JSON.parse(str); } catch(e){ return fallback; }
+}
+
+function nowISO(){
+  return new Date().toISOString();
+}
+
+// ---------- LOCAL CACHE ----------
+function saveCache(){
+  try{
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ state, cachedAt: nowISO() }));
+  }catch(e){
+    console.warn("Cache save failed", e);
+  }
+}
+
+function loadCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if(!raw) return null;
+    const parsed = jsonSafeParse(raw, null);
+    return parsed && parsed.state ? parsed.state : null;
+  }catch(e){
+    console.warn("Cache read failed", e);
+    return null;
+  }
+}
+
+// ---------- CLOUD (GOOGLE SHEETS VIA WEB APP) ----------
+async function fetchFromServer(){
+  const url = `${WEBAPP_URL}?key=${encodeURIComponent(STATE_KEY)}`;
+  const res = await fetch(url, { method:"GET", cache:"no-store" });
+  const data = await res.json();
+  if(!data || !data.ok) throw new Error((data && data.error) || "Server GET failed");
+  return data.json || {};
+}
+
+async function postToServer(payloadObj){
+  // IMPORTANT: no custom headers -> browser uses text/plain charset=UTF-8 (simple request)
+  const body = JSON.stringify({ key: STATE_KEY, json: payloadObj });
+  const res = await fetch(WEBAPP_URL, { method:"POST", body });
+  const data = await res.json();
+  if(!data || !data.ok) throw new Error((data && data.error) || "Server POST failed");
+  return data;
+}
+
+function queueSave(ms=600){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveToServer().catch(err => console.warn("Auto-save failed:", err));
+  }, ms);
+}
+
+async function saveToServer(){
+  if(inFlight) return;
+  inFlight = true;
+
+  // cache first so you never lose the change
+  saveCache();
+
+  try{
+    await postToServer(state);
+  } finally {
+    inFlight = false;
+  }
+}
+
+// ---------- DATA SHAPING ----------
+function ensureFloor(floor){
+  if(!state.floors) state.floors = {};
+  if(!state.floors[String(floor)] || typeof state.floors[String(floor)] !== "object"){
+    state.floors[String(floor)] = {};
+  }
+}
+
+function ensureRoom(floor, roomNum){
+  ensureFloor(floor);
+  const f = state.floors[String(floor)];
+  const key = String(roomNum);
+  if(!f[key] || typeof f[key] !== "object"){
+    f[key] = { passed:false, failed:false, notinspected:true, notes:"" };
+  } else {
+    // normalize keys in case old data exists
+    f[key].passed = !!f[key].passed;
+    f[key].failed = !!f[key].failed;
+    f[key].notinspected = (f[key].notinspected === undefined) ? true : !!f[key].notinspected;
+    f[key].notes = (f[key].notes || "");
+  }
+  return f[key];
+}
+
+// ---------- FLOOR CONFIG ----------
+function range(start, end){
+  const out = [];
   for(let i=start;i<=end;i++) out.push(i);
   return out;
 }
 
-/** ===============================
- *  Floor config
- * =============================== */
 const floorConfigs = {
-  2: { label:"2nd Floor — 200 Rooms", badgeClass:"badge-2", badgeText:"Rooms 201–212, 214–226, 230–233", helper:"Select one status per room and add notes for any violations or comments.",
-       rooms:[...range(201,212), ...range(214,226), ...range(230,233)] },
-  3: { label:"3rd Floor — 300 Rooms", badgeClass:"badge-3", badgeText:"Rooms 301–312, 314–327, 329–331", helper:"300 wing rooms.",
-       rooms:[...range(301,312), ...range(314,327), ...range(329,331)] },
-  4: { label:"4th Floor — 400 Rooms", badgeClass:"badge-4", badgeText:"Rooms 401–412, 414–427, 429–431", helper:"400 wing rooms.",
-       rooms:[...range(401,412), ...range(414,427), ...range(429,431)] },
-  5: { label:"5th Floor — 500 Rooms", badgeClass:"badge-5", badgeText:"Rooms 501–512, 514–527, 529–531", helper:"500 wing rooms.",
-       rooms:[...range(501,512), ...range(514,527), ...range(529,531)] }
+  "2": {
+    label: '2nd Floor — 200 Rooms',
+    badgeClass: 'badge-2',
+    badgeText: 'Rooms 201–212, 214–226, 230–233',
+    helper: 'Select one status per room and add notes for any violations or comments.',
+    rooms: [
+      ...range(201,212),
+      ...range(214,226),
+      ...range(230,233)
+    ]
+  },
+  "3": {
+    label: '3rd Floor — 300 Rooms',
+    badgeClass: 'badge-3',
+    badgeText: 'Rooms 301–312, 314–327, 329–331',
+    helper: '300 wing rooms.',
+    rooms: [
+      ...range(301,312),
+      ...range(314,327),
+      ...range(329,331)
+    ]
+  },
+  "4": {
+    label: '4th Floor — 400 Rooms',
+    badgeClass: 'badge-4',
+    badgeText: 'Rooms 401–412, 414–427, 429–431',
+    helper: '400 wing rooms.',
+    rooms: [
+      ...range(401,412),
+      ...range(414,427),
+      ...range(429,431)
+    ]
+  },
+  "5": {
+    label: '5th Floor — 500 Rooms',
+    badgeClass: 'badge-5',
+    badgeText: 'Rooms 501–512, 514–527, 529–531',
+    helper: '500 wing rooms.',
+    rooms: [
+      ...range(501,512),
+      ...range(514,527),
+      ...range(529,531)
+    ]
+  }
 };
 
-/** ===============================
- *  STATE (in-memory)
- *  Structure:
- *  state = {
- *    inspectionDate: "YYYY-MM-DD",
- *    floors: {
- *      "2": { "201": {passed:true, failed:false, notinspected:false, notes:""} , ... },
- *      "3": {...}
- *    }
- *  }
- * =============================== */
-let state = {
-  inspectionDate: "",
-  floors: { "2":{}, "3":{}, "4":{}, "5":{} }
-};
-
-function ensureRoom(floor, room){
-  const f = String(floor);
-  const r = String(room);
-  if(!state.floors[f]) state.floors[f] = {};
-  if(!state.floors[f][r]) state.floors[f][r] = { passed:false, failed:false, notinspected:true, notes:"" };
-}
-
-/** ===============================
- *  Google Script API
- * =============================== */
-async function loadFromServer(){
-  setSyncStatus("busy","Loading…");
-  try{
-    const url = WEB_APP_URL + "?key=" + encodeURIComponent(STATE_KEY);
-    const res = await fetch(url, { method:"GET" });
-    const data = await res.json();
-
-    if(!data || data.ok !== true){
-      setSyncStatus("bad", data && data.error ? data.error : "Load failed");
-      return;
-    }
-
-    // If empty, keep defaults
-    if(data.json && typeof data.json === "object"){
-      state = normalizeLoadedState(data.json);
-    }
-
-    // Apply to UI
-    applyStateToUI();
-
-    setSyncStatus("ok", data.updatedAt ? ("Loaded: " + data.updatedAt) : "Loaded");
-  }catch(err){
-    console.error(err);
-    setSyncStatus("bad","Load error");
-  }
-}
-
-async function saveToServer(){
-  setSyncStatus("busy","Saving…");
-  try{
-    const payload = {
-      key: STATE_KEY,
-      json: state
-    };
-
-    const res = await fetch(WEB_APP_URL, {
-      method:"POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    if(!data || data.ok !== true){
-      setSyncStatus("bad", data && data.error ? data.error : "Save failed");
-      return;
-    }
-    setSyncStatus("ok", data.updatedAt ? ("Saved: " + data.updatedAt) : "Saved");
-  }catch(err){
-    console.error(err);
-    setSyncStatus("bad","Save error");
-  }
-}
-
-/** Debounce saves so typing doesn’t hammer the script */
-let saveTimer = null;
-function queueSave(ms=700){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveToServer(), ms);
-}
-
-/** Normalize older/partial states safely */
-function normalizeLoadedState(inObj){
-  const out = {
-    inspectionDate: "",
-    floors: { "2":{}, "3":{}, "4":{}, "5":{} }
-  };
-
-  if(inObj && typeof inObj === "object"){
-    if(typeof inObj.inspectionDate === "string") out.inspectionDate = inObj.inspectionDate;
-
-    const floors = inObj.floors && typeof inObj.floors === "object" ? inObj.floors : {};
-    ["2","3","4","5"].forEach(f=>{
-      out.floors[f] = {};
-      const fin = floors[f] && typeof floors[f] === "object" ? floors[f] : {};
-      Object.keys(fin).forEach(room=>{
-        const rec = fin[room] || {};
-        out.floors[f][room] = {
-          passed: !!rec.passed,
-          failed: !!rec.failed,
-          notinspected: ("notinspected" in rec) ? !!rec.notinspected : (!rec.passed && !rec.failed),
-          notes: (typeof rec.notes === "string") ? rec.notes : ""
-        };
-      });
-    });
-  }
-
-  // Ensure all rooms exist
-  Object.keys(floorConfigs).forEach(f=>{
-    (floorConfigs[f].rooms || []).forEach(r=>{
-      if(!out.floors[String(f)][String(r)]){
-        out.floors[String(f)][String(r)] = { passed:false, failed:false, notinspected:true, notes:"" };
-      }
-    });
-  });
-
-  return out;
-}
-
-/** ===============================
- *  UI Build
- * =============================== */
+// ---------- UI BINDINGS ----------
 function getActiveFloor(){
-  const btn = document.querySelector(".tab-btn.active");
-  return btn ? btn.getAttribute("data-floor") : "2";
+  const btn = document.querySelector('.tab-btn.active');
+  return btn ? btn.getAttribute('data-floor') : "2";
 }
 
 function setFloorBlurb(floor){
-  const cfg = floorConfigs[floor];
+  const cfg = floorConfigs[String(floor)];
+  if(!cfg) return;
+
   const blurb = document.getElementById("floorBlurb");
-  if(!cfg || !blurb) return;
+  if(!blurb) return;
+
   blurb.innerHTML = `
     <div class="floor-title">
       ${cfg.label}
@@ -551,107 +204,119 @@ function setFloorBlurb(floor){
   `;
 }
 
+function setInspectionDateToUI(){
+  const dateEl = document.getElementById("inspectionDate");
+  if(!dateEl) return;
+  dateEl.value = state.inspectionDate || "";
+}
+
+function readInspectionDateFromUI(){
+  const dateEl = document.getElementById("inspectionDate");
+  if(!dateEl) return;
+  state.inspectionDate = dateEl.value || "";
+}
+
 function buildTableForFloor(floor){
-  const cfg = floorConfigs[floor];
+  const cfg = floorConfigs[String(floor)];
   if(!cfg) return;
 
   setFloorBlurb(floor);
 
   const tbody = document.getElementById("floorBody");
+  if(!tbody) return;
+
   tbody.innerHTML = "";
 
-  cfg.rooms.forEach(roomNum=>{
-    ensureRoom(floor, roomNum);
-    const rec = state.floors[String(floor)][String(roomNum)];
+  // Ensure state containers exist but do NOT wipe other floors
+  ensureFloor(floor);
+
+  cfg.rooms.forEach(roomNum => {
+    const rec = ensureRoom(floor, roomNum);
 
     const tr = document.createElement("tr");
+    tr.setAttribute("data-floor", String(floor));
 
+    // Room #
     const tdRoom = document.createElement("td");
     tdRoom.className = "room-col";
-    tdRoom.textContent = roomNum;
+    tdRoom.textContent = String(roomNum);
     tr.appendChild(tdRoom);
 
     // Passed
     const tdP = document.createElement("td");
     tdP.className = "check-col";
-    tdP.innerHTML = `<div class="check-wrap"><input type="checkbox" id="p_${floor}_${roomNum}"></div>`;
+    tdP.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="passed"></div>`;
+    const cbP = tdP.querySelector("input");
+    cbP.checked = !!rec.passed;
     tr.appendChild(tdP);
 
     // Failed
     const tdF = document.createElement("td");
     tdF.className = "check-col";
-    tdF.innerHTML = `<div class="check-wrap"><input type="checkbox" id="f_${floor}_${roomNum}"></div>`;
+    tdF.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="failed"></div>`;
+    const cbF = tdF.querySelector("input");
+    cbF.checked = !!rec.failed;
     tr.appendChild(tdF);
 
     // Not inspected
     const tdN = document.createElement("td");
     tdN.className = "check-col";
-    tdN.innerHTML = `<div class="check-wrap"><input type="checkbox" id="n_${floor}_${roomNum}"></div>`;
+    tdN.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="notinspected"></div>`;
+    const cbN = tdN.querySelector("input");
+    cbN.checked = !!rec.notinspected;
     tr.appendChild(tdN);
 
     // Notes
     const tdNotes = document.createElement("td");
     tdNotes.className = "notes-col";
-    tdNotes.innerHTML = `<textarea class="notes-input" id="notes_${floor}_${roomNum}" rows="1" placeholder="Notes / violations…"></textarea>`;
+    const ta = document.createElement("textarea");
+    ta.className = "notes-input";
+    ta.value = rec.notes || "";
+    ta.placeholder = "Notes / violations...";
+    tdNotes.appendChild(ta);
     tr.appendChild(tdNotes);
 
-    tbody.appendChild(tr);
-
-    // Wire up
-    const cbP = document.getElementById(`p_${floor}_${roomNum}`);
-    const cbF = document.getElementById(`f_${floor}_${roomNum}`);
-    const cbN = document.getElementById(`n_${floor}_${roomNum}`);
-    const notes = document.getElementById(`notes_${floor}_${roomNum}`);
-
-    cbP.checked = !!rec.passed;
-    cbF.checked = !!rec.failed;
-    cbN.checked = !!rec.notinspected;
-
-    notes.value = rec.notes || "";
-    autoResize(notes);
-
-    function enforceOne(which){
-      // Only one of three should be true
-      rec.passed = (which === "passed");
-      rec.failed = (which === "failed");
-      rec.notinspected = (which === "notinspected");
+    // Mutual exclusivity for status checkboxes
+    function applyExclusive(kind){
+      // Update record
+      rec.passed = (kind === "passed");
+      rec.failed = (kind === "failed");
+      rec.notinspected = (kind === "notinspected");
 
       cbP.checked = rec.passed;
       cbF.checked = rec.failed;
       cbN.checked = rec.notinspected;
 
-      queueSave();
+      // Save
+      saveCache();
+      queueSave(600);
     }
 
-    cbP.addEventListener("change", ()=> enforceOne(cbP.checked ? "passed" : "notinspected"));
-    cbF.addEventListener("change", ()=> enforceOne(cbF.checked ? "failed" : "notinspected"));
-    cbN.addEventListener("change", ()=> enforceOne("notinspected"));
+    cbP.addEventListener("change", () => applyExclusive("passed"));
+    cbF.addEventListener("change", () => applyExclusive("failed"));
+    cbN.addEventListener("change", () => applyExclusive("notinspected"));
 
-    notes.addEventListener("input", ()=>{
-      rec.notes = notes.value;
-      autoResize(notes);
-      queueSave(800);
+    ta.addEventListener("input", () => {
+      rec.notes = ta.value || "";
+      autoResize(ta);
+      saveCache();
+      queueSave(700);
     });
+
+    tbody.appendChild(tr);
+
+    // autoresize after append
+    autoResize(ta);
   });
 }
 
-/** Apply state values to UI elements */
-function applyStateToUI(){
-  const dateEl = document.getElementById("inspectionDate");
-  if(dateEl) dateEl.value = state.inspectionDate || "";
-
-  // Rebuild active floor to reflect server state
-  buildTableForFloor(getActiveFloor());
-}
-
-/** Clear current floor only */
 function clearCurrentFloor(){
   const floor = getActiveFloor();
-  const cfg = floorConfigs[floor];
+  const cfg = floorConfigs[String(floor)];
   if(!cfg) return;
-  cfg.rooms.forEach(roomNum=>{
-    ensureRoom(floor, roomNum);
-    const rec = state.floors[String(floor)][String(roomNum)];
+
+  cfg.rooms.forEach(roomNum => {
+    const rec = ensureRoom(floor, roomNum);
     rec.passed = false;
     rec.failed = false;
     rec.notinspected = true;
@@ -659,41 +324,68 @@ function clearCurrentFloor(){
   });
 
   buildTableForFloor(floor);
-  queueSave(300);
+  saveCache();
+  queueSave(400);
 }
 
-/** ===============================
- *  Boot
- * =============================== */
-document.addEventListener("DOMContentLoaded", async ()=>{
+// ---------- BOOT ----------
+async function boot(){
+  // 1) show cache immediately (fast)
+  const cached = loadCache();
+  if(cached){
+    state = cached;
+  }
+
+  // 2) bind date input
+  const dateEl = document.getElementById("inspectionDate");
+  if(dateEl){
+    dateEl.addEventListener("change", () => {
+      readInspectionDateFromUI();
+      saveCache();
+      queueSave(500);
+    });
+  }
+
+  // 3) build initial UI using whatever state we currently have
+  setInspectionDateToUI();
+  buildTableForFloor(getActiveFloor());
+
+  // 4) then pull the server state and overwrite local if server has real data
+  try{
+    const serverState = await fetchFromServer();
+
+    // Only overwrite if it looks like a valid object
+    if(serverState && typeof serverState === "object" && Object.keys(serverState).length){
+      state = serverState;
+      saveCache();
+      setInspectionDateToUI();
+      buildTableForFloor(getActiveFloor());
+    }
+  }catch(e){
+    console.warn("Server fetch failed (offline?)", e);
+  }
+
   // Buttons
-  document.getElementById("btnPrintFloor")?.addEventListener("click", ()=> window.print());
-  document.getElementById("btnClearFloor")?.addEventListener("click", ()=>{
-    if(confirm("Clear all statuses and notes for this floor?")) clearCurrentFloor();
+  const printBtn = document.getElementById("btnPrintFloor");
+  const clearBtn = document.getElementById("btnClearFloor");
+
+  if(printBtn) printBtn.addEventListener("click", () => window.print());
+  if(clearBtn) clearBtn.addEventListener("click", () => {
+    if(confirm("Clear all statuses and notes for this floor?")){
+      clearCurrentFloor();
+    }
   });
-  document.getElementById("btnSyncNow")?.addEventListener("click", ()=> saveToServer());
 
   // Tabs
-  document.querySelectorAll(".tab-btn").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      document.querySelectorAll(".tab-btn").forEach(b=> b.classList.remove("active"));
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       buildTableForFloor(btn.getAttribute("data-floor"));
     });
   });
+}
 
-  // Date change
-  document.getElementById("inspectionDate")?.addEventListener("change", (e)=>{
-    state.inspectionDate = e.target.value || "";
-    queueSave(400);
-  });
-
-  // Build default floor first (so page isn’t empty)
-  buildTableForFloor("2");
-
-  // Then load from server (overwrites if existing)
-  await loadFromServer();
-});
+document.addEventListener("DOMContentLoaded", boot);
 </script>
-</body>
-</html>
