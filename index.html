@@ -1,390 +1,170 @@
 <script>
 /**
- * Holiday Inn Room Log — Cloud Sync + Local Cache
- * - Cloud: Google Apps Script web app (Sheet "STATE")
- * - Local: localStorage cache (for offline / fast loads)
+ * HOLIDAY INN ROOM LOG — CLOUD SYNC (GOOGLE APPS SCRIPT) + LOCAL BACKUP
+ *
+ * Works with your EXISTING page:
+ * - Anything marked data-save="1" is persisted
+ * - Supports input + textarea + checkbox
+ * - Keeps localStorage as backup
+ * - Adds automatic cross-computer sync via your Apps Script Web App
  */
 
-// ✅ PASTE YOUR WEB APP URL HERE:
+// ====== SET THESE 2 VALUES ======
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
+const STATE_KEY  = "holiday_inn_inspection_state_v1"; // MUST match what your sheet stores
 
-// ✅ This is the record key stored in your STATE sheet:
-const STATE_KEY = "holiday_inn_inspection_state_v1";
+// local backup cache key
+const CACHE_KEY = "holiday_inn_roomlog_localcache_v1";
 
-// ✅ local cache key (per device)
-const CACHE_KEY = "holiday_inn_roomlog_cache_v1";
-
-// Debounce saving so we don't spam the server
+// debounce so we don't spam server
 let saveTimer = null;
-let inFlight = false;
+let isSaving = false;
 
-// ---- STATE MODEL ----
-// We store everything in one object:
-let state = {
-  inspectionDate: "",        // yyyy-mm-dd
-  floors: {                  // floor -> rooms -> record
-    "2": {},
-    "3": {},
-    "4": {},
-    "5": {}
-  }
-};
-
-// ---------- UI HELPERS ----------
-function autoResize(el){
-  el.style.height = 'auto';
-  el.style.height = el.scrollHeight + 'px';
+// ---------- LOCAL SAVE/LOAD ----------
+function buildPayloadFromPage(){
+  const data = {};
+  document.querySelectorAll('input[data-save="1"], textarea[data-save="1"]').forEach(el => {
+    if(!el.id) return;
+    if(el.type === "checkbox"){
+      data[el.id] = el.checked;
+    }else{
+      data[el.id] = el.value || "";
+    }
+  });
+  return data;
 }
 
-function jsonSafeParse(str, fallback){
-  try { return JSON.parse(str); } catch(e){ return fallback; }
+function applyPayloadToPage(data){
+  if(!data || typeof data !== "object") return;
+
+  Object.keys(data).forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+
+    if(el.type === "checkbox"){
+      el.checked = !!data[id];
+    }else{
+      el.value = data[id];
+      if(el.tagName === "TEXTAREA"){
+        autoResize(el);
+      }
+    }
+  });
 }
 
-function nowISO(){
-  return new Date().toISOString();
-}
-
-// ---------- LOCAL CACHE ----------
-function saveCache(){
+function saveLocal(payload){
   try{
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ state, cachedAt: nowISO() }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
   }catch(e){
-    console.warn("Cache save failed", e);
+    console.warn("Local save failed", e);
   }
 }
 
-function loadCache(){
+function loadLocal(){
   try{
     const raw = localStorage.getItem(CACHE_KEY);
     if(!raw) return null;
-    const parsed = jsonSafeParse(raw, null);
-    return parsed && parsed.state ? parsed.state : null;
+    return JSON.parse(raw);
   }catch(e){
-    console.warn("Cache read failed", e);
+    console.warn("Local load failed", e);
     return null;
   }
 }
 
-// ---------- CLOUD (GOOGLE SHEETS VIA WEB APP) ----------
-async function fetchFromServer(){
+// ---------- CLOUD GET/POST ----------
+async function cloudGet(){
   const url = `${WEBAPP_URL}?key=${encodeURIComponent(STATE_KEY)}`;
   const res = await fetch(url, { method:"GET", cache:"no-store" });
-  const data = await res.json();
-  if(!data || !data.ok) throw new Error((data && data.error) || "Server GET failed");
-  return data.json || {};
+  const out = await res.json();
+  if(!out || !out.ok) throw new Error((out && out.error) || "Cloud GET failed");
+  return out.json || {};
 }
 
-async function postToServer(payloadObj){
-  // IMPORTANT: no custom headers -> browser uses text/plain charset=UTF-8 (simple request)
-  const body = JSON.stringify({ key: STATE_KEY, json: payloadObj });
-  const res = await fetch(WEBAPP_URL, { method:"POST", body });
-  const data = await res.json();
-  if(!data || !data.ok) throw new Error((data && data.error) || "Server POST failed");
-  return data;
-}
-
-function queueSave(ms=600){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    saveToServer().catch(err => console.warn("Auto-save failed:", err));
-  }, ms);
-}
-
-async function saveToServer(){
-  if(inFlight) return;
-  inFlight = true;
-
-  // cache first so you never lose the change
-  saveCache();
-
-  try{
-    await postToServer(state);
-  } finally {
-    inFlight = false;
-  }
-}
-
-// ---------- DATA SHAPING ----------
-function ensureFloor(floor){
-  if(!state.floors) state.floors = {};
-  if(!state.floors[String(floor)] || typeof state.floors[String(floor)] !== "object"){
-    state.floors[String(floor)] = {};
-  }
-}
-
-function ensureRoom(floor, roomNum){
-  ensureFloor(floor);
-  const f = state.floors[String(floor)];
-  const key = String(roomNum);
-  if(!f[key] || typeof f[key] !== "object"){
-    f[key] = { passed:false, failed:false, notinspected:true, notes:"" };
-  } else {
-    // normalize keys in case old data exists
-    f[key].passed = !!f[key].passed;
-    f[key].failed = !!f[key].failed;
-    f[key].notinspected = (f[key].notinspected === undefined) ? true : !!f[key].notinspected;
-    f[key].notes = (f[key].notes || "");
-  }
-  return f[key];
-}
-
-// ---------- FLOOR CONFIG ----------
-function range(start, end){
-  const out = [];
-  for(let i=start;i<=end;i++) out.push(i);
+async function cloudPost(payload){
+  // No custom headers (avoids preflight/CORS headaches)
+  const res = await fetch(WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ key: STATE_KEY, json: payload })
+  });
+  const out = await res.json();
+  if(!out || !out.ok) throw new Error((out && out.error) || "Cloud POST failed");
   return out;
 }
 
-const floorConfigs = {
-  "2": {
-    label: '2nd Floor — 200 Rooms',
-    badgeClass: 'badge-2',
-    badgeText: 'Rooms 201–212, 214–226, 230–233',
-    helper: 'Select one status per room and add notes for any violations or comments.',
-    rooms: [
-      ...range(201,212),
-      ...range(214,226),
-      ...range(230,233)
-    ]
-  },
-  "3": {
-    label: '3rd Floor — 300 Rooms',
-    badgeClass: 'badge-3',
-    badgeText: 'Rooms 301–312, 314–327, 329–331',
-    helper: '300 wing rooms.',
-    rooms: [
-      ...range(301,312),
-      ...range(314,327),
-      ...range(329,331)
-    ]
-  },
-  "4": {
-    label: '4th Floor — 400 Rooms',
-    badgeClass: 'badge-4',
-    badgeText: 'Rooms 401–412, 414–427, 429–431',
-    helper: '400 wing rooms.',
-    rooms: [
-      ...range(401,412),
-      ...range(414,427),
-      ...range(429,431)
-    ]
-  },
-  "5": {
-    label: '5th Floor — 500 Rooms',
-    badgeClass: 'badge-5',
-    badgeText: 'Rooms 501–512, 514–527, 529–531',
-    helper: '500 wing rooms.',
-    rooms: [
-      ...range(501,512),
-      ...range(514,527),
-      ...range(529,531)
-    ]
+// ---------- RESIZE ----------
+function autoResize(el){
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+// ---------- SAVE PIPELINE ----------
+function scheduleCloudSave(ms=600){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveCloudNow().catch(err => console.warn("Cloud save failed:", err));
+  }, ms);
+}
+
+async function saveCloudNow(){
+  if(isSaving) return;
+  isSaving = true;
+
+  const payload = buildPayloadFromPage();
+
+  // always local backup first
+  saveLocal(payload);
+
+  try{
+    await cloudPost(payload);
+  } finally {
+    isSaving = false;
   }
-};
-
-// ---------- UI BINDINGS ----------
-function getActiveFloor(){
-  const btn = document.querySelector('.tab-btn.active');
-  return btn ? btn.getAttribute('data-floor') : "2";
-}
-
-function setFloorBlurb(floor){
-  const cfg = floorConfigs[String(floor)];
-  if(!cfg) return;
-
-  const blurb = document.getElementById("floorBlurb");
-  if(!blurb) return;
-
-  blurb.innerHTML = `
-    <div class="floor-title">
-      ${cfg.label}
-      <span class="badge-row ${cfg.badgeClass}">${cfg.badgeText}</span>
-    </div>
-    <div class="helper-text">${cfg.helper}</div>
-  `;
-}
-
-function setInspectionDateToUI(){
-  const dateEl = document.getElementById("inspectionDate");
-  if(!dateEl) return;
-  dateEl.value = state.inspectionDate || "";
-}
-
-function readInspectionDateFromUI(){
-  const dateEl = document.getElementById("inspectionDate");
-  if(!dateEl) return;
-  state.inspectionDate = dateEl.value || "";
-}
-
-function buildTableForFloor(floor){
-  const cfg = floorConfigs[String(floor)];
-  if(!cfg) return;
-
-  setFloorBlurb(floor);
-
-  const tbody = document.getElementById("floorBody");
-  if(!tbody) return;
-
-  tbody.innerHTML = "";
-
-  // Ensure state containers exist but do NOT wipe other floors
-  ensureFloor(floor);
-
-  cfg.rooms.forEach(roomNum => {
-    const rec = ensureRoom(floor, roomNum);
-
-    const tr = document.createElement("tr");
-    tr.setAttribute("data-floor", String(floor));
-
-    // Room #
-    const tdRoom = document.createElement("td");
-    tdRoom.className = "room-col";
-    tdRoom.textContent = String(roomNum);
-    tr.appendChild(tdRoom);
-
-    // Passed
-    const tdP = document.createElement("td");
-    tdP.className = "check-col";
-    tdP.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="passed"></div>`;
-    const cbP = tdP.querySelector("input");
-    cbP.checked = !!rec.passed;
-    tr.appendChild(tdP);
-
-    // Failed
-    const tdF = document.createElement("td");
-    tdF.className = "check-col";
-    tdF.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="failed"></div>`;
-    const cbF = tdF.querySelector("input");
-    cbF.checked = !!rec.failed;
-    tr.appendChild(tdF);
-
-    // Not inspected
-    const tdN = document.createElement("td");
-    tdN.className = "check-col";
-    tdN.innerHTML = `<div class="check-wrap"><input type="checkbox" data-kind="notinspected"></div>`;
-    const cbN = tdN.querySelector("input");
-    cbN.checked = !!rec.notinspected;
-    tr.appendChild(tdN);
-
-    // Notes
-    const tdNotes = document.createElement("td");
-    tdNotes.className = "notes-col";
-    const ta = document.createElement("textarea");
-    ta.className = "notes-input";
-    ta.value = rec.notes || "";
-    ta.placeholder = "Notes / violations...";
-    tdNotes.appendChild(ta);
-    tr.appendChild(tdNotes);
-
-    // Mutual exclusivity for status checkboxes
-    function applyExclusive(kind){
-      // Update record
-      rec.passed = (kind === "passed");
-      rec.failed = (kind === "failed");
-      rec.notinspected = (kind === "notinspected");
-
-      cbP.checked = rec.passed;
-      cbF.checked = rec.failed;
-      cbN.checked = rec.notinspected;
-
-      // Save
-      saveCache();
-      queueSave(600);
-    }
-
-    cbP.addEventListener("change", () => applyExclusive("passed"));
-    cbF.addEventListener("change", () => applyExclusive("failed"));
-    cbN.addEventListener("change", () => applyExclusive("notinspected"));
-
-    ta.addEventListener("input", () => {
-      rec.notes = ta.value || "";
-      autoResize(ta);
-      saveCache();
-      queueSave(700);
-    });
-
-    tbody.appendChild(tr);
-
-    // autoresize after append
-    autoResize(ta);
-  });
-}
-
-function clearCurrentFloor(){
-  const floor = getActiveFloor();
-  const cfg = floorConfigs[String(floor)];
-  if(!cfg) return;
-
-  cfg.rooms.forEach(roomNum => {
-    const rec = ensureRoom(floor, roomNum);
-    rec.passed = false;
-    rec.failed = false;
-    rec.notinspected = true;
-    rec.notes = "";
-  });
-
-  buildTableForFloor(floor);
-  saveCache();
-  queueSave(400);
 }
 
 // ---------- BOOT ----------
 async function boot(){
-  // 1) show cache immediately (fast)
-  const cached = loadCache();
-  if(cached){
-    state = cached;
-  }
+  // 1) Load local first so page "looks alive" instantly
+  const local = loadLocal();
+  if(local) applyPayloadToPage(local);
 
-  // 2) bind date input
-  const dateEl = document.getElementById("inspectionDate");
-  if(dateEl){
-    dateEl.addEventListener("change", () => {
-      readInspectionDateFromUI();
-      saveCache();
-      queueSave(500);
-    });
-  }
-
-  // 3) build initial UI using whatever state we currently have
-  setInspectionDateToUI();
-  buildTableForFloor(getActiveFloor());
-
-  // 4) then pull the server state and overwrite local if server has real data
+  // 2) Then load cloud and apply (cloud wins)
   try{
-    const serverState = await fetchFromServer();
-
-    // Only overwrite if it looks like a valid object
-    if(serverState && typeof serverState === "object" && Object.keys(serverState).length){
-      state = serverState;
-      saveCache();
-      setInspectionDateToUI();
-      buildTableForFloor(getActiveFloor());
+    const cloud = await cloudGet();
+    if(cloud && typeof cloud === "object" && Object.keys(cloud).length){
+      applyPayloadToPage(cloud);
+      saveLocal(cloud); // keep local in sync
     }
   }catch(e){
-    console.warn("Server fetch failed (offline?)", e);
+    console.warn("Cloud load failed (permissions/offline?)", e);
   }
 
-  // Buttons
-  const printBtn = document.getElementById("btnPrintFloor");
-  const clearBtn = document.getElementById("btnClearFloor");
-
-  if(printBtn) printBtn.addEventListener("click", () => window.print());
-  if(clearBtn) clearBtn.addEventListener("click", () => {
-    if(confirm("Clear all statuses and notes for this floor?")){
-      clearCurrentFloor();
+  // 3) Wire up autosave for ANY data-save field
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if(!t) return;
+    if(t.matches('input[data-save="1"], textarea[data-save="1"]')){
+      if(t.tagName === "TEXTAREA") autoResize(t);
+      saveLocal(buildPayloadFromPage());
+      scheduleCloudSave(700);
     }
   });
 
-  // Tabs
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      buildTableForFloor(btn.getAttribute("data-floor"));
-    });
+  document.addEventListener("input", (e) => {
+    const t = e.target;
+    if(!t) return;
+    if(t.matches('textarea[data-save="1"]')){
+      autoResize(t);
+      saveLocal(buildPayloadFromPage());
+      scheduleCloudSave(800);
+    }
+    if(t.matches('input[data-save="1"]') && t.type !== "checkbox"){
+      saveLocal(buildPayloadFromPage());
+      scheduleCloudSave(900);
+    }
   });
+
+  // 4) If you have a "Clear Floor" button, it will still work with your own logic.
+  // (This script doesn't overwrite any of your existing functions.)
 }
 
 document.addEventListener("DOMContentLoaded", boot);
