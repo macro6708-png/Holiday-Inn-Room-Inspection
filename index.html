@@ -18,7 +18,6 @@
     --shadow:0 10px 25px rgba(15,23,42,.18);
     --radius:22px;
 
-    /* hub pastels */
     --p1:#bfe3ff;  /* blue */
     --p2:#ffd6e7;  /* pink */
     --p3:#d8ffd6;  /* green */
@@ -63,7 +62,6 @@
     gap:8px;
     margin-bottom:12px;
     font-size:.9rem;
-    color:var(--text);
   }
   .date-row label{ font-weight:600; }
   .date-row input[type="date"]{
@@ -103,26 +101,14 @@
   .card-header-text{
     font-size:.82rem;
     color:var(--muted);
-    line-height:1.25;
-    max-width:720px;
+    flex:1 1 420px;
   }
 
   .header-actions{
     display:flex;
     gap:8px;
     flex-wrap:wrap;
-    align-items:center;
     justify-content:flex-end;
-  }
-
-  .sync-pill{
-    font-size:.75rem;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.45);
-    background:#fff;
-    color:#111827;
-    white-space:nowrap;
   }
 
   .btn-pill{
@@ -140,14 +126,20 @@
     transition:transform .08s ease, box-shadow .08s ease, opacity .08s ease;
   }
   .btn-pill span.icon{font-size:.9rem;}
+  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
 
   .btn-print{ background:#2563eb; color:#fff; }
-  .btn-clear{
-    background:#fee2e2;
-    color:#991b1b;
-    box-shadow:0 6px 14px rgba(248,113,113,.35);
+  .btn-clear{ background:#fee2e2; color:#991b1b; box-shadow:0 6px 14px rgba(248,113,113,.35); }
+  .btn-sync{ background:#e0f2fe; color:#075985; box-shadow:0 6px 14px rgba(14,165,233,.28); }
+
+  .sync-dot{
+    width:9px;height:9px;border-radius:999px;
+    background:#94a3b8;
+    display:inline-block;
   }
-  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
+  .sync-dot.ok{ background:#22c55e; }
+  .sync-dot.bad{ background:#ef4444; }
+  .sync-dot.busy{ background:#f59e0b; }
 
   .tabs{
     display:flex;
@@ -169,7 +161,6 @@
     max-width:160px;
     transition:transform .1s ease, box-shadow .1s ease, background .1s ease, color .1s ease;
   }
-
   .tab-btn[data-floor="2"]{ background:rgba(191,227,255,.9); }
   .tab-btn[data-floor="3"]{ background:rgba(255,214,231,.95); }
   .tab-btn[data-floor="4"]{ background:rgba(216,255,214,.95); }
@@ -182,15 +173,10 @@
     transform:translateY(-1px);
     font-weight:600;
   }
-
   .tab-btn:active{ transform:translateY(0); box-shadow:none; }
 
   .floor-blurb{ margin-bottom:6px; }
-  .floor-title{
-    font-size:1.05rem;
-    font-weight:600;
-    margin-bottom:4px;
-  }
+  .floor-title{ font-size:1.05rem; font-weight:600; margin-bottom:4px; }
 
   .badge-row{
     display:inline-flex;
@@ -246,7 +232,6 @@
 
   tbody tr:nth-child(even) td{ background:#f9fafb; }
   tbody tr:nth-child(odd) td{ background:#ffffff; }
-
   tbody tr:hover td{ background:#f1f5ff; }
 
   .room-col{ width:70px; font-weight:600; white-space:nowrap; }
@@ -265,7 +250,6 @@
     overflow:hidden;
     line-height:1.3;
   }
-
   .notes-input:focus{
     outline:none;
     border-color:var(--ring);
@@ -279,12 +263,7 @@
     align-items:center;
     padding-top:2px;
   }
-
-  .check-wrap input[type="checkbox"]{
-    width:17px;
-    height:17px;
-    accent-color:#2563eb;
-  }
+  .check-wrap input[type="checkbox"]{ width:17px; height:17px; accent-color:#2563eb; }
 
   @media (max-width:700px){
     body{ padding:10px; }
@@ -297,7 +276,7 @@
 
   @media print{
     body{ background:#fff; padding:0; margin:0; }
-    .subtitle,.tabs,.card-header-band,.tab-btn,.btn-pill,.sync-pill{ display:none !important; }
+    .subtitle, .tabs, .card-header-band, .tab-btn, .btn-pill{ display:none !important; }
     .wrapper{ max-width:none; margin:0; }
     .card{ box-shadow:none; border:none; padding:0; margin:0; }
     .table-wrap{ max-height:none; overflow:visible; border-radius:0; border:none; }
@@ -327,13 +306,25 @@
   <div class="card">
     <div class="card-header-band">
       <div class="card-header-text">
-        Your work saves instantly to this device <strong>and</strong> syncs to your Google Sheet (Web App).
-        Use <strong>Create PDF</strong> when you’re ready to file or save a PDF.
+        This version saves to your Google Sheet (cloud). Use <strong>Create PDF</strong> when you’re ready to file/save a PDF.
+        <span style="margin-left:10px; display:inline-flex; align-items:center; gap:6px;">
+          <span id="syncDot" class="sync-dot"></span>
+          <span id="syncText">Not synced yet</span>
+        </span>
       </div>
+
       <div class="header-actions">
-        <span class="sync-pill" id="syncStatus">Sync: —</span>
-        <button class="btn-pill btn-print" type="button" id="btnPrintFloor"><span class="icon">🖨️</span><span>Create PDF</span></button>
-        <button class="btn-pill btn-clear" type="button" id="btnClearFloor"><span class="icon">🧹</span><span>Clear Floor</span></button>
+        <button class="btn-pill btn-sync" type="button" id="btnSyncNow">
+          <span class="icon">☁️</span><span>Sync Now</span>
+        </button>
+
+        <button class="btn-pill btn-print" type="button" id="btnPrintFloor">
+          <span class="icon">🖨️</span><span>Create PDF</span>
+        </button>
+
+        <button class="btn-pill btn-clear" type="button" id="btnClearFloor">
+          <span class="icon">🧹</span><span>Clear Floor</span>
+        </button>
       </div>
     </div>
 
@@ -349,7 +340,9 @@
         2nd Floor — 200 Rooms
         <span class="badge-row badge-2">Rooms 201–212, 214–226, 230–233</span>
       </div>
-      <div class="helper-text">Select one status per room and add notes for any violations or comments.</div>
+      <div class="helper-text">
+        Select one status per room and add notes for any violations or comments.
+      </div>
     </div>
 
     <div class="table-wrap">
@@ -366,199 +359,189 @@
         <tbody id="floorBody"></tbody>
       </table>
     </div>
+
   </div>
 </div>
 
 <script>
-/** ==========================
+/** ===============================
  *  SETTINGS
- *  ========================== */
-const LOCAL_KEY = "holiday_inn_inspection_state_v8"; // local backup name
-const REMOTE_KEY = "holiday_inn_inspection_state_v1"; // google sheet record key
+ * =============================== */
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
+const STATE_KEY   = "holiday_inn_inspection_state_v1";
 
-// ✅ Your Google Apps Script Web App URL:
-const API_URL = "https://script.google.com/macros/s/AKfycbzvmJ66LwDU6xNyIpZEdbR1Ltp61NOlpBmOjkVo4hQRP-mxL92KOE7dhECN-RNYLxM8/exec";
-
-/** ==========================
- *  STATE (single source of truth)
- *  ========================== */
-let state = {
-  inspectionDate: "",
-  floors: {
-    "2": {},
-    "3": {},
-    "4": {},
-    "5": {}
-  }
-};
-
-function setSyncStatus(text){ document.getElementById("syncStatus").textContent = "Sync: " + text; }
+/** ===============================
+ *  UI helpers
+ * =============================== */
+function setSyncStatus(mode, text){
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncText");
+  dot.classList.remove("ok","bad","busy");
+  if(mode) dot.classList.add(mode);
+  label.textContent = text || "";
+}
 
 function autoResize(el){
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
 
-function range(start, end){
-  const out = [];
+function range(start,end){
+  const out=[];
   for(let i=start;i<=end;i++) out.push(i);
   return out;
 }
 
+/** ===============================
+ *  Floor config
+ * =============================== */
 const floorConfigs = {
-  "2": {
-    label: "2nd Floor — 200 Rooms",
-    badgeClass: "badge-2",
-    badgeText: "Rooms 201–212, 214–226, 230–233",
-    helper: "Select one status per room and add notes for any violations or comments.",
-    rooms: [...range(201,212), ...range(214,226), ...range(230,233)]
-  },
-  "3": {
-    label: "3rd Floor — 300 Rooms",
-    badgeClass: "badge-3",
-    badgeText: "Rooms 301–312, 314–327, 329–331",
-    helper: "300 wing rooms.",
-    rooms: [...range(301,312), ...range(314,327), ...range(329,331)]
-  },
-  "4": {
-    label: "4th Floor — 400 Rooms",
-    badgeClass: "badge-4",
-    badgeText: "Rooms 401–412, 414–427, 429–431",
-    helper: "400 wing rooms.",
-    rooms: [...range(401,412), ...range(414,427), ...range(429,431)]
-  },
-  "5": {
-    label: "5th Floor — 500 Rooms",
-    badgeClass: "badge-5",
-    badgeText: "Rooms 501–512, 514–527, 529–531",
-    helper: "500 wing rooms.",
-    rooms: [...range(501,512), ...range(514,527), ...range(529,531)]
-  }
+  2: { label:"2nd Floor — 200 Rooms", badgeClass:"badge-2", badgeText:"Rooms 201–212, 214–226, 230–233", helper:"Select one status per room and add notes for any violations or comments.",
+       rooms:[...range(201,212), ...range(214,226), ...range(230,233)] },
+  3: { label:"3rd Floor — 300 Rooms", badgeClass:"badge-3", badgeText:"Rooms 301–312, 314–327, 329–331", helper:"300 wing rooms.",
+       rooms:[...range(301,312), ...range(314,327), ...range(329,331)] },
+  4: { label:"4th Floor — 400 Rooms", badgeClass:"badge-4", badgeText:"Rooms 401–412, 414–427, 429–431", helper:"400 wing rooms.",
+       rooms:[...range(401,412), ...range(414,427), ...range(429,431)] },
+  5: { label:"5th Floor — 500 Rooms", badgeClass:"badge-5", badgeText:"Rooms 501–512, 514–527, 529–531", helper:"500 wing rooms.",
+       rooms:[...range(501,512), ...range(514,527), ...range(529,531)] }
 };
 
+/** ===============================
+ *  STATE (in-memory)
+ *  Structure:
+ *  state = {
+ *    inspectionDate: "YYYY-MM-DD",
+ *    floors: {
+ *      "2": { "201": {passed:true, failed:false, notinspected:false, notes:""} , ... },
+ *      "3": {...}
+ *    }
+ *  }
+ * =============================== */
+let state = {
+  inspectionDate: "",
+  floors: { "2":{}, "3":{}, "4":{}, "5":{} }
+};
+
+function ensureRoom(floor, room){
+  const f = String(floor);
+  const r = String(room);
+  if(!state.floors[f]) state.floors[f] = {};
+  if(!state.floors[f][r]) state.floors[f][r] = { passed:false, failed:false, notinspected:true, notes:"" };
+}
+
+/** ===============================
+ *  Google Script API
+ * =============================== */
+async function loadFromServer(){
+  setSyncStatus("busy","Loading…");
+  try{
+    const url = WEB_APP_URL + "?key=" + encodeURIComponent(STATE_KEY);
+    const res = await fetch(url, { method:"GET" });
+    const data = await res.json();
+
+    if(!data || data.ok !== true){
+      setSyncStatus("bad", data && data.error ? data.error : "Load failed");
+      return;
+    }
+
+    // If empty, keep defaults
+    if(data.json && typeof data.json === "object"){
+      state = normalizeLoadedState(data.json);
+    }
+
+    // Apply to UI
+    applyStateToUI();
+
+    setSyncStatus("ok", data.updatedAt ? ("Loaded: " + data.updatedAt) : "Loaded");
+  }catch(err){
+    console.error(err);
+    setSyncStatus("bad","Load error");
+  }
+}
+
+async function saveToServer(){
+  setSyncStatus("busy","Saving…");
+  try{
+    const payload = {
+      key: STATE_KEY,
+      json: state
+    };
+
+    const res = await fetch(WEB_APP_URL, {
+      method:"POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if(!data || data.ok !== true){
+      setSyncStatus("bad", data && data.error ? data.error : "Save failed");
+      return;
+    }
+    setSyncStatus("ok", data.updatedAt ? ("Saved: " + data.updatedAt) : "Saved");
+  }catch(err){
+    console.error(err);
+    setSyncStatus("bad","Save error");
+  }
+}
+
+/** Debounce saves so typing doesn’t hammer the script */
+let saveTimer = null;
+function queueSave(ms=700){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToServer(), ms);
+}
+
+/** Normalize older/partial states safely */
+function normalizeLoadedState(inObj){
+  const out = {
+    inspectionDate: "",
+    floors: { "2":{}, "3":{}, "4":{}, "5":{} }
+  };
+
+  if(inObj && typeof inObj === "object"){
+    if(typeof inObj.inspectionDate === "string") out.inspectionDate = inObj.inspectionDate;
+
+    const floors = inObj.floors && typeof inObj.floors === "object" ? inObj.floors : {};
+    ["2","3","4","5"].forEach(f=>{
+      out.floors[f] = {};
+      const fin = floors[f] && typeof floors[f] === "object" ? floors[f] : {};
+      Object.keys(fin).forEach(room=>{
+        const rec = fin[room] || {};
+        out.floors[f][room] = {
+          passed: !!rec.passed,
+          failed: !!rec.failed,
+          notinspected: ("notinspected" in rec) ? !!rec.notinspected : (!rec.passed && !rec.failed),
+          notes: (typeof rec.notes === "string") ? rec.notes : ""
+        };
+      });
+    });
+  }
+
+  // Ensure all rooms exist
+  Object.keys(floorConfigs).forEach(f=>{
+    (floorConfigs[f].rooms || []).forEach(r=>{
+      if(!out.floors[String(f)][String(r)]){
+        out.floors[String(f)][String(r)] = { passed:false, failed:false, notinspected:true, notes:"" };
+      }
+    });
+  });
+
+  return out;
+}
+
+/** ===============================
+ *  UI Build
+ * =============================== */
 function getActiveFloor(){
   const btn = document.querySelector(".tab-btn.active");
   return btn ? btn.getAttribute("data-floor") : "2";
 }
 
-function ensureRoom(floor, room){
-  state.floors[floor] = state.floors[floor] || {};
-  if(!state.floors[floor][room]){
-    state.floors[floor][room] = { status: "", notes: "" };
-  }
-}
-
-/** ==========================
- *  LOCAL STORAGE
- *  ========================== */
-function saveLocal(){
-  try{
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
-  }catch(e){
-    console.warn("Local save failed", e);
-  }
-}
-function loadLocal(){
-  try{
-    const raw = localStorage.getItem(LOCAL_KEY);
-    if(!raw) return false;
-    const obj = JSON.parse(raw);
-    if(!obj || typeof obj !== "object") return false;
-    state = mergeState(state, obj);
-    return true;
-  }catch(e){
-    console.warn("Local load failed", e);
-    return false;
-  }
-}
-
-/** ==========================
- *  REMOTE (GOOGLE SCRIPT)
- *  ========================== */
-async function fetchRemote(){
-  if(!API_URL) return null;
-  try{
-    setSyncStatus("loading…");
-    const res = await fetch(`${API_URL}?key=${encodeURIComponent(REMOTE_KEY)}`, { method:"GET" });
-    const data = await res.json();
-    if(data && data.ok && data.json && typeof data.json === "object"){
-      setSyncStatus("loaded");
-      return data.json;
-    }
-    setSyncStatus("no remote");
-    return null;
-  }catch(e){
-    console.warn("Remote fetch failed", e);
-    setSyncStatus("offline");
-    return null;
-  }
-}
-
-let saveTimer = null;
-function scheduleRemoteSave(){
-  if(!API_URL) return;
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveRemote, 800);
-}
-
-async function saveRemote(){
-  try{
-    setSyncStatus("saving…");
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ key: REMOTE_KEY, json: state })
-    });
-    const data = await res.json();
-    if(data && data.ok){
-      setSyncStatus("saved");
-    }else{
-      setSyncStatus("save error");
-      console.warn("Remote save response:", data);
-    }
-  }catch(e){
-    console.warn("Remote save failed", e);
-    setSyncStatus("offline");
-  }
-}
-
-/** ==========================
- *  MERGE (protects your data)
- *  ========================== */
-function mergeState(base, incoming){
-  // shallow-safe merge with floor/room preservation
-  const out = JSON.parse(JSON.stringify(base));
-
-  if(incoming && typeof incoming === "object"){
-    if(typeof incoming.inspectionDate === "string") out.inspectionDate = incoming.inspectionDate;
-
-    if(incoming.floors && typeof incoming.floors === "object"){
-      for(const f of ["2","3","4","5"]){
-        out.floors[f] = out.floors[f] || {};
-        const incFloor = incoming.floors[f];
-        if(incFloor && typeof incFloor === "object"){
-          for(const roomKey of Object.keys(incFloor)){
-            const rec = incFloor[roomKey];
-            if(rec && typeof rec === "object"){
-              out.floors[f][roomKey] = {
-                status: typeof rec.status === "string" ? rec.status : "",
-                notes: typeof rec.notes === "string" ? rec.notes : ""
-              };
-            }
-          }
-        }
-      }
-    }
-  }
-  return out;
-}
-
-/** ==========================
- *  UI BUILD
- *  ========================== */
 function setFloorBlurb(floor){
   const cfg = floorConfigs[floor];
   const blurb = document.getElementById("floorBlurb");
+  if(!cfg || !blurb) return;
   blurb.innerHTML = `
     <div class="floor-title">
       ${cfg.label}
@@ -577,154 +560,140 @@ function buildTableForFloor(floor){
   const tbody = document.getElementById("floorBody");
   tbody.innerHTML = "";
 
-  cfg.rooms.forEach(roomNum => {
-    const room = String(roomNum);
-    ensureRoom(floor, room);
+  cfg.rooms.forEach(roomNum=>{
+    ensureRoom(floor, roomNum);
+    const rec = state.floors[String(floor)][String(roomNum)];
 
     const tr = document.createElement("tr");
 
-    // room #
     const tdRoom = document.createElement("td");
     tdRoom.className = "room-col";
-    tdRoom.textContent = room;
+    tdRoom.textContent = roomNum;
     tr.appendChild(tdRoom);
 
-    // helper to make checkbox cell
-    const makeCheckCell = (label) => {
-      const td = document.createElement("td");
-      td.className = "check-col";
-      const wrap = document.createElement("div");
-      wrap.className = "check-wrap";
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.setAttribute("aria-label", label);
-      wrap.appendChild(cb);
-      td.appendChild(wrap);
-      return { td, cb };
-    };
+    // Passed
+    const tdP = document.createElement("td");
+    tdP.className = "check-col";
+    tdP.innerHTML = `<div class="check-wrap"><input type="checkbox" id="p_${floor}_${roomNum}"></div>`;
+    tr.appendChild(tdP);
 
-    const passed = makeCheckCell("Passed");
-    const failed = makeCheckCell("Failed");
-    const notins = makeCheckCell("Not Inspected");
+    // Failed
+    const tdF = document.createElement("td");
+    tdF.className = "check-col";
+    tdF.innerHTML = `<div class="check-wrap"><input type="checkbox" id="f_${floor}_${roomNum}"></div>`;
+    tr.appendChild(tdF);
 
-    // set initial checks
-    const st = state.floors[floor][room].status || "";
-    passed.cb.checked = st === "passed";
-    failed.cb.checked = st === "failed";
-    notins.cb.checked = st === "not_inspected";
+    // Not inspected
+    const tdN = document.createElement("td");
+    tdN.className = "check-col";
+    tdN.innerHTML = `<div class="check-wrap"><input type="checkbox" id="n_${floor}_${roomNum}"></div>`;
+    tr.appendChild(tdN);
 
-    // exclusive logic
-    function setStatus(newStatus){
-      state.floors[floor][room].status = newStatus;
-
-      passed.cb.checked = newStatus === "passed";
-      failed.cb.checked = newStatus === "failed";
-      notins.cb.checked = newStatus === "not_inspected";
-
-      saveLocal();
-      scheduleRemoteSave();
-    }
-
-    passed.cb.addEventListener("change", () => setStatus(passed.cb.checked ? "passed" : ""));
-    failed.cb.addEventListener("change", () => setStatus(failed.cb.checked ? "failed" : ""));
-    notins.cb.addEventListener("change", () => setStatus(notins.cb.checked ? "not_inspected" : ""));
-
-    tr.appendChild(passed.td);
-    tr.appendChild(failed.td);
-    tr.appendChild(notins.td);
-
-    // notes
+    // Notes
     const tdNotes = document.createElement("td");
     tdNotes.className = "notes-col";
-    const ta = document.createElement("textarea");
-    ta.className = "notes-input";
-    ta.rows = 1;
-    ta.placeholder = "Notes / violations…";
-    ta.value = state.floors[floor][room].notes || "";
-    autoResize(ta);
-
-    ta.addEventListener("input", () => {
-      state.floors[floor][room].notes = ta.value;
-      autoResize(ta);
-      saveLocal();
-      scheduleRemoteSave();
-    });
-
-    tdNotes.appendChild(ta);
+    tdNotes.innerHTML = `<textarea class="notes-input" id="notes_${floor}_${roomNum}" rows="1" placeholder="Notes / violations…"></textarea>`;
     tr.appendChild(tdNotes);
 
     tbody.appendChild(tr);
+
+    // Wire up
+    const cbP = document.getElementById(`p_${floor}_${roomNum}`);
+    const cbF = document.getElementById(`f_${floor}_${roomNum}`);
+    const cbN = document.getElementById(`n_${floor}_${roomNum}`);
+    const notes = document.getElementById(`notes_${floor}_${roomNum}`);
+
+    cbP.checked = !!rec.passed;
+    cbF.checked = !!rec.failed;
+    cbN.checked = !!rec.notinspected;
+
+    notes.value = rec.notes || "";
+    autoResize(notes);
+
+    function enforceOne(which){
+      // Only one of three should be true
+      rec.passed = (which === "passed");
+      rec.failed = (which === "failed");
+      rec.notinspected = (which === "notinspected");
+
+      cbP.checked = rec.passed;
+      cbF.checked = rec.failed;
+      cbN.checked = rec.notinspected;
+
+      queueSave();
+    }
+
+    cbP.addEventListener("change", ()=> enforceOne(cbP.checked ? "passed" : "notinspected"));
+    cbF.addEventListener("change", ()=> enforceOne(cbF.checked ? "failed" : "notinspected"));
+    cbN.addEventListener("change", ()=> enforceOne("notinspected"));
+
+    notes.addEventListener("input", ()=>{
+      rec.notes = notes.value;
+      autoResize(notes);
+      queueSave(800);
+    });
   });
 }
 
+/** Apply state values to UI elements */
+function applyStateToUI(){
+  const dateEl = document.getElementById("inspectionDate");
+  if(dateEl) dateEl.value = state.inspectionDate || "";
+
+  // Rebuild active floor to reflect server state
+  buildTableForFloor(getActiveFloor());
+}
+
+/** Clear current floor only */
 function clearCurrentFloor(){
   const floor = getActiveFloor();
   const cfg = floorConfigs[floor];
   if(!cfg) return;
-
-  cfg.rooms.forEach(roomNum => {
-    const room = String(roomNum);
-    ensureRoom(floor, room);
-    state.floors[floor][room] = { status:"", notes:"" };
+  cfg.rooms.forEach(roomNum=>{
+    ensureRoom(floor, roomNum);
+    const rec = state.floors[String(floor)][String(roomNum)];
+    rec.passed = false;
+    rec.failed = false;
+    rec.notinspected = true;
+    rec.notes = "";
   });
 
-  saveLocal();
-  scheduleRemoteSave();
   buildTableForFloor(floor);
+  queueSave(300);
 }
 
-/** ==========================
- *  INIT
- *  ========================== */
-async function init(){
-  // 1) Load local first (fast)
-  loadLocal();
-
-  // Date field
-  const dateEl = document.getElementById("inspectionDate");
-  if(state.inspectionDate) dateEl.value = state.inspectionDate;
-
-  dateEl.addEventListener("change", () => {
-    state.inspectionDate = dateEl.value || "";
-    saveLocal();
-    scheduleRemoteSave();
+/** ===============================
+ *  Boot
+ * =============================== */
+document.addEventListener("DOMContentLoaded", async ()=>{
+  // Buttons
+  document.getElementById("btnPrintFloor")?.addEventListener("click", ()=> window.print());
+  document.getElementById("btnClearFloor")?.addEventListener("click", ()=>{
+    if(confirm("Clear all statuses and notes for this floor?")) clearCurrentFloor();
   });
-
-  // 2) Load remote and merge (if available)
-  const remote = await fetchRemote();
-  if(remote){
-    // merge remote into current (preserves anything already local)
-    state = mergeState(state, remote);
-
-    // reflect date after merge
-    if(state.inspectionDate) dateEl.value = state.inspectionDate;
-
-    saveLocal(); // keep a backup after remote merge
-  }
+  document.getElementById("btnSyncNow")?.addEventListener("click", ()=> saveToServer());
 
   // Tabs
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabButtons.forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab-btn").forEach(b=> b.classList.remove("active"));
       btn.classList.add("active");
       buildTableForFloor(btn.getAttribute("data-floor"));
     });
   });
 
-  // Buttons
-  document.getElementById("btnPrintFloor").addEventListener("click", () => window.print());
-  document.getElementById("btnClearFloor").addEventListener("click", () => {
-    if(confirm("Clear all statuses and notes for this floor?")){
-      clearCurrentFloor();
-    }
+  // Date change
+  document.getElementById("inspectionDate")?.addEventListener("change", (e)=>{
+    state.inspectionDate = e.target.value || "";
+    queueSave(400);
   });
 
-  // Build default floor
-  buildTableForFloor(getActiveFloor());
-}
+  // Build default floor first (so page isn’t empty)
+  buildTableForFloor("2");
 
-document.addEventListener("DOMContentLoaded", init);
+  // Then load from server (overwrites if existing)
+  await loadFromServer();
+});
 </script>
 </body>
 </html>
