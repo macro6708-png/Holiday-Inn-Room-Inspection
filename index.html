@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>The Holiday Inn — Room Inspection Checklist</title>
+<title>The Holiday Inn — Room Inspection</title>
 
 <!-- iPad / iOS friendly meta -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,7 +19,7 @@
     --shadow:0 10px 25px rgba(15,23,42,.18);
     --radius:22px;
 
-    /* hub pastels */
+    /* pastels */
     --p1:#bfe3ff;  /* blue */
     --p2:#ffd6e7;  /* pink */
     --p3:#d8ffd6;  /* green */
@@ -29,6 +29,10 @@
 
     --hubNotesBg:#f6f1ff;
     --hubNotesBorder:#e6ddff;
+
+    --ok:#16a34a;
+    --warn:#f59e0b;
+    --bad:#dc2626;
   }
 
   *{box-sizing:border-box;}
@@ -57,18 +61,25 @@
     margin-bottom:10px;
   }
 
+  .topbar{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+
   .date-row{
     display:flex;
     justify-content:center;
     align-items:center;
     gap:8px;
-    margin-bottom:12px;
     font-size:.9rem;
-    color:var(--text);
   }
   .date-row label{ font-weight:600; }
   .date-row input[type="date"]{
-    padding:4px 8px;
+    padding:4px 10px;
     border-radius:999px;
     border:1px solid rgba(148,163,184,.7);
     font-size:.9rem;
@@ -97,12 +108,25 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    gap:8px;
+    gap:10px;
+    flex-wrap:wrap;
   }
 
-  .card-header-text{ font-size:.82rem; color:var(--muted); }
+  .card-header-text{
+    font-size:.82rem;
+    color:var(--muted);
+    line-height:1.35;
+    flex:1 1 320px;
+  }
 
-  .header-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .header-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    flex:0 0 auto;
+  }
 
   .btn-pill{
     border:none;
@@ -117,7 +141,9 @@
     white-space:nowrap;
     box-shadow:0 6px 14px rgba(59,130,246,.35);
     transition:transform .08s ease, box-shadow .08s ease, opacity .08s ease;
+    user-select:none;
   }
+  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
   .btn-pill span.icon{font-size:.9rem;}
 
   .btn-print{ background:#2563eb; color:#fff; }
@@ -126,7 +152,26 @@
     color:#991b1b;
     box-shadow:0 6px 14px rgba(248,113,113,.35);
   }
-  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
+
+  .sync-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.75);
+    border:1px solid rgba(148,163,184,.45);
+    font-size:.78rem;
+    color:#111827;
+  }
+  .dot{
+    width:10px; height:10px; border-radius:999px; display:inline-block;
+    background:var(--warn);
+    box-shadow:0 0 0 2px rgba(0,0,0,.04);
+  }
+  .dot.ok{ background:var(--ok); }
+  .dot.bad{ background:var(--bad); }
+  .dot.warn{ background:var(--warn); }
 
   .tabs{
     display:flex;
@@ -148,7 +193,6 @@
     max-width:160px;
     transition:transform .1s ease, box-shadow .1s ease, background .1s ease, color .1s ease;
   }
-
   .tab-btn[data-floor="2"]{ background:rgba(191,227,255,.9); }
   .tab-btn[data-floor="3"]{ background:rgba(255,214,231,.95); }
   .tab-btn[data-floor="4"]{ background:rgba(216,255,214,.95); }
@@ -222,14 +266,14 @@
   tbody tr:nth-child(odd) td{ background:#ffffff; }
   tbody tr:hover td{ background:#f1f5ff; }
 
-  .room-col{ width:70px; font-weight:600; white-space:nowrap; }
+  .room-col{ width:70px; font-weight:700; white-space:nowrap; }
   .check-col{ width:90px; text-align:center; }
   .notes-col{ width:auto; }
 
   .notes-input{
     width:100%;
-    min-width:140px;
-    padding:5px 7px;
+    min-width:160px;
+    padding:6px 8px;
     border-radius:12px;
     border:1px solid var(--hubNotesBorder);
     font-size:.85rem;
@@ -251,57 +295,33 @@
     align-items:center;
     padding-top:2px;
   }
-  .check-wrap input[type="radio"]{
+
+  .check-wrap input[type="checkbox"]{
     width:17px;
     height:17px;
     accent-color:#2563eb;
     cursor:pointer;
   }
 
-  .sync-pill{
-    font-size:.72rem;
-    padding:4px 10px;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.55);
-    background:#ffffffaa;
-    color:#334155;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-  }
-  .dot{
-    width:8px; height:8px; border-radius:999px; background:#94a3b8;
-    display:inline-block;
-  }
-  .dot.ok{ background:#16a34a; }
-  .dot.bad{ background:#dc2626; }
-  .dot.busy{ background:#2563eb; }
-
   @media (max-width:700px){
     body{ padding:10px; }
     .card{ padding:12px 12px 16px; }
     th,td{ padding:6px 4px; font-size:.8rem; }
     .notes-input{ font-size:.8rem; }
-    .card-header-band{
-      flex-direction:column;
-      align-items:flex-start;
-    }
-    .header-actions{ align-self:flex-end; }
   }
 
   /* Print mode */
   @media print{
     body{ background:#fff; padding:0; margin:0; }
-    .subtitle, .tabs, .card-header-band, .tab-btn, .btn-pill{ display:none !important; }
+    .subtitle,.tabs,.card-header-band,.btn-pill,.sync-pill{ display:none !important; }
     .wrapper{ max-width:none; margin:0; }
     .card{ box-shadow:none; border:none; padding:0; margin:0; }
     .table-wrap{ max-height:none; overflow:visible; border-radius:0; border:none; }
     h1{ font-size:1.4rem; margin:0 0 4px 0; text-align:left; }
-    .date-row{ justify-content:flex-start; margin:0 0 6px 0; }
-    .date-row input[type="date"]{ border:none; padding:0 4px; border-radius:0; background:#fff; box-shadow:none; }
+    .topbar{ justify-content:flex-start; margin:0 0 6px 0; }
     table{ font-size:.85rem; }
     th,td{ padding:6px 4px; }
-    tbody tr:nth-child(even) td, tbody tr:nth-child(odd) td{ background:#ffffff; }
+    tbody tr:nth-child(even) td, tbody tr:nth-child(odd) td{ background:#fff; }
     .notes-input{ background:#fff; border:1px solid #d1d5db; min-height:40px; }
   }
 </style>
@@ -314,22 +334,25 @@
     Select a floor, mark <strong>Passed / Failed / Not Inspected</strong>, and record any violations or notes.
   </div>
 
-  <div class="date-row">
-    <label for="inspectionDate">Inspection Date:</label>
-    <input type="date" id="inspectionDate" />
+  <div class="topbar">
+    <div class="date-row">
+      <label for="inspectionDate">Inspection Date:</label>
+      <input type="date" id="inspectionDate" name="inspectionDate">
+    </div>
+
+    <div class="sync-pill" title="Cloud sync status">
+      <span class="dot warn" id="syncDot"></span>
+      <span id="syncText">Sync: idle</span>
+    </div>
   </div>
 
   <div class="card">
     <div class="card-header-band">
       <div class="card-header-text">
-        Use the floor tabs below. Data is saved locally + synced to your Google Sheet for multi-computer use.
-        Use <strong>Create PDF</strong> when you’re ready to file or save a PDF.
+        This log saves locally <strong>and</strong> auto-syncs to your Google Sheet for multi-computer use.
+        If the network is down, it still works and will sync once you edit again.
       </div>
       <div class="header-actions">
-        <span class="sync-pill" id="syncPill" title="Sync status">
-          <span class="dot" id="syncDot"></span>
-          <span id="syncText">Local ready</span>
-        </span>
         <button class="btn-pill btn-print" type="button" id="btnPrintFloor">
           <span class="icon">🖨️</span><span>Create PDF</span>
         </button>
@@ -339,7 +362,6 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tab-btn active" data-floor="2">2nd Floor (200s)</button>
       <button class="tab-btn" data-floor="3">3rd Floor (300s)</button>
@@ -347,8 +369,10 @@
       <button class="tab-btn" data-floor="5">5th Floor (500s)</button>
     </div>
 
-    <!-- Floor description -->
-    <div class="floor-blurb" id="floorBlurb"></div>
+    <div class="floor-blurb" id="floorBlurb">
+      <div class="floor-title" id="floorTitle"></div>
+      <div class="helper-text" id="floorHelper"></div>
+    </div>
 
     <div class="table-wrap">
       <table>
@@ -368,24 +392,38 @@
 </div>
 
 <script>
-/**
- * HOLIDAY INN ROOM LOG — FULL PAGE (LOCAL + CLOUD SYNC)
- * Stores a single master state object so switching floors never loses data.
- *
- * ✅ MULTI-COMPUTER SYNC via Apps Script Web App
- * ✅ LOCAL BACKUP via localStorage
- */
-
-//// =========================
-//// 1) YOUR WEB APP SETTINGS
-//// =========================
+/* ===========================
+   CLOUD SYNC SETTINGS
+   =========================== */
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
 const STATE_KEY  = "holiday_inn_inspection_state_v1";
-const CACHE_KEY  = "holiday_inn_roomlog_localcache_v2"; // local backup key (can be any name)
 
-//// =========================
-//// 2) FLOOR CONFIG
-//// =========================
+const CACHE_KEY  = "holiday_inn_roomlog_localcache_v1";
+
+/* ===========================
+   STATE MODEL (what we save)
+   {
+     version: 1,
+     inspectionDate: "YYYY-MM-DD",
+     floors: {
+       "2": { "201": { status:"passed|failed|not|", notes:"" }, ... },
+       "3": ...
+     },
+     updatedAt: "iso"
+   }
+   =========================== */
+let state = {
+  version: 1,
+  inspectionDate: "",
+  floors: {},
+  updatedAt: ""
+};
+
+let activeFloor = "2";
+
+/* ===========================
+   FLOOR CONFIG
+   =========================== */
 function range(start, end){
   const out = [];
   for(let i=start;i<=end;i++) out.push(i);
@@ -423,166 +461,33 @@ const floorConfigs = {
   }
 };
 
-//// =========================
-//// 3) MASTER STATE
-//// =========================
-function newBlankState(){
-  return {
-    version: 1,
-    updatedAt: "",
-    inspectionDate: "",
-    floors: {
-      "2": {},
-      "3": {},
-      "4": {},
-      "5": {}
-    }
-  };
+function ensureRoom(floor, room){
+  floor = String(floor);
+  room  = String(room);
+  state.floors[floor] = state.floors[floor] || {};
+  state.floors[floor][room] = state.floors[floor][room] || { status:"", notes:"" };
+  return state.floors[floor][room];
 }
 
-// status: "passed" | "failed" | "not" | ""
-function ensureRoom(state, floor, room){
-  const f = String(floor);
-  const r = String(room);
-  if(!state.floors[f]) state.floors[f] = {};
-  if(!state.floors[f][r]) state.floors[f][r] = { status:"", notes:"" };
-  return state.floors[f][r];
-}
-
-let state = newBlankState();
-
-//// =========================
-//// 4) UI HELPERS
-//// =========================
-function setSyncStatus(mode, text){
-  const dot = document.getElementById("syncDot");
-  const label = document.getElementById("syncText");
-  dot.classList.remove("ok","bad","busy");
-  if(mode === "ok") dot.classList.add("ok");
-  else if(mode === "bad") dot.classList.add("bad");
-  else if(mode === "busy") dot.classList.add("busy");
-  label.textContent = text || "";
-}
-
+/* ===========================
+   UI HELPERS
+   =========================== */
 function autoResize(el){
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
 
-function getActiveFloor(){
-  const btn = document.querySelector(".tab-btn.active");
-  return btn ? btn.getAttribute("data-floor") : "2";
+function setSyncStatus(kind, text){
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncText");
+  dot.classList.remove("ok","warn","bad");
+  dot.classList.add(kind);
+  label.textContent = text;
 }
 
-function renderBlurb(floor){
-  const cfg = floorConfigs[String(floor)];
-  const blurb = document.getElementById("floorBlurb");
-  if(!cfg || !blurb) return;
-
-  blurb.innerHTML = `
-    <div class="floor-title">
-      ${cfg.label}
-      <span class="badge-row ${cfg.badgeClass}">${cfg.badgeText}</span>
-    </div>
-    <div class="helper-text">${cfg.helper}</div>
-  `;
-}
-
-function renderFloorTable(floor){
-  const f = String(floor);
-  const cfg = floorConfigs[f];
-  if(!cfg) return;
-
-  renderBlurb(f);
-
-  const tbody = document.getElementById("floorBody");
-  tbody.innerHTML = "";
-
-  cfg.rooms.forEach(roomNum => {
-    const roomKey = String(roomNum);
-    const rec = ensureRoom(state, f, roomKey);
-
-    const tr = document.createElement("tr");
-
-    // Room #
-    const tdRoom = document.createElement("td");
-    tdRoom.className = "room-col";
-    tdRoom.textContent = roomKey;
-    tr.appendChild(tdRoom);
-
-    // Radio helper creator
-    function makeRadioCell(value){
-      const td = document.createElement("td");
-      td.className = "check-col";
-
-      const wrap = document.createElement("div");
-      wrap.className = "check-wrap";
-
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = `status_${f}_${roomKey}`;          // group per room
-      input.id = `status_${f}_${roomKey}_${value}`;   // unique id
-      input.checked = (rec.status === value);
-
-      input.addEventListener("change", () => {
-        rec.status = value;
-        touchAndScheduleSave();
-      });
-
-      wrap.appendChild(input);
-      td.appendChild(wrap);
-      return td;
-    }
-
-    tr.appendChild(makeRadioCell("passed"));
-    tr.appendChild(makeRadioCell("failed"));
-    tr.appendChild(makeRadioCell("not"));
-
-    // Notes
-    const tdNotes = document.createElement("td");
-    tdNotes.className = "notes-col";
-
-    const ta = document.createElement("textarea");
-    ta.className = "notes-input";
-    ta.id = `notes_${f}_${roomKey}`;
-    ta.rows = 1;
-    ta.placeholder = "Notes / violations...";
-    ta.value = rec.notes || "";
-
-    ta.addEventListener("input", () => {
-      rec.notes = ta.value || "";
-      autoResize(ta);
-      touchAndScheduleSave();
-    });
-
-    // initial resize
-    setTimeout(() => autoResize(ta), 0);
-
-    tdNotes.appendChild(ta);
-    tr.appendChild(tdNotes);
-
-    tbody.appendChild(tr);
-  });
-}
-
-function clearCurrentFloor(){
-  const floor = getActiveFloor();
-  const cfg = floorConfigs[String(floor)];
-  if(!cfg) return;
-
-  cfg.rooms.forEach(roomNum => {
-    const rec = ensureRoom(state, floor, roomNum);
-    rec.status = "";
-    rec.notes = "";
-  });
-
-  renderFloorTable(floor);
-  touchAndScheduleSave(true);
-}
-
-//// =========================
-//// 5) LOCAL STORAGE
-//// =========================
+/* ===========================
+   LOCAL SAVE/LOAD
+   =========================== */
 function saveLocal(){
   try{
     localStorage.setItem(CACHE_KEY, JSON.stringify(state));
@@ -604,9 +509,9 @@ function loadLocal(){
   }
 }
 
-//// =========================
-//// 6) CLOUD GET / POST
-//// =========================
+/* ===========================
+   CLOUD GET/POST
+   =========================== */
 async function cloudGet(){
   const url = `${WEBAPP_URL}?key=${encodeURIComponent(STATE_KEY)}`;
   const res = await fetch(url, { method:"GET", cache:"no-store" });
@@ -625,28 +530,18 @@ async function cloudPost(payload){
   return out;
 }
 
-//// =========================
-//// 7) SAVE PIPELINE (DEBOUNCE)
-//// =========================
+/* ===========================
+   AUTO-SYNC PIPELINE
+   =========================== */
 let saveTimer = null;
 let isSaving = false;
 
-function touchState(){
-  state.updatedAt = new Date().toISOString();
-}
-
-function touchAndScheduleSave(immediate=false){
-  touchState();
-  saveLocal();
-  scheduleCloudSave(immediate ? 50 : 700);
-}
-
-function scheduleCloudSave(ms){
+function scheduleCloudSave(ms=650){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveCloudNow().catch(err => {
       console.warn("Cloud save failed:", err);
-      setSyncStatus("bad", "Cloud error (still saved locally)");
+      setSyncStatus("bad", "Sync: error (saved locally)");
     });
   }, ms);
 }
@@ -654,40 +549,188 @@ function scheduleCloudSave(ms){
 async function saveCloudNow(){
   if(isSaving) return;
   isSaving = true;
-  setSyncStatus("busy", "Syncing…");
 
+  // stamp
+  state.updatedAt = new Date().toISOString();
+
+  // always save local first
+  saveLocal();
+
+  setSyncStatus("warn", "Sync: saving...");
   try{
     await cloudPost(state);
-    setSyncStatus("ok", "Synced");
+    setSyncStatus("ok", "Sync: saved");
   } finally {
     isSaving = false;
   }
 }
 
-//// =========================
-//// 8) BOOT
-//// =========================
+/* ===========================
+   RENDER TABLE
+   =========================== */
+function renderFloorBlurb(floor){
+  const cfg = floorConfigs[floor];
+  const title = document.getElementById("floorTitle");
+  const helper = document.getElementById("floorHelper");
+  if(!cfg){ title.textContent = ""; helper.textContent = ""; return; }
+
+  title.innerHTML = `
+    ${cfg.label}
+    <span class="badge-row ${cfg.badgeClass}">${cfg.badgeText}</span>
+  `;
+  helper.textContent = cfg.helper || "";
+}
+
+function setExclusiveStatus(floor, room, status){
+  const rec = ensureRoom(floor, room);
+  rec.status = status;
+}
+
+function buildTableForFloor(floor){
+  activeFloor = String(floor);
+  renderFloorBlurb(activeFloor);
+
+  const cfg = floorConfigs[activeFloor];
+  const tbody = document.getElementById("floorBody");
+  tbody.innerHTML = "";
+
+  (cfg.rooms || []).forEach(roomNum => {
+    const room = String(roomNum);
+    const rec = ensureRoom(activeFloor, room);
+
+    const tr = document.createElement("tr");
+
+    // Room #
+    const tdRoom = document.createElement("td");
+    tdRoom.className = "room-col";
+    tdRoom.textContent = room;
+    tr.appendChild(tdRoom);
+
+    // Passed / Failed / Not (checkboxes but exclusive)
+    const statuses = [
+      { key:"passed", label:"PASSED" },
+      { key:"failed", label:"FAILED" },
+      { key:"not",    label:"NOT" }
+    ];
+
+    statuses.forEach(s => {
+      const td = document.createElement("td");
+      td.className = "check-col";
+
+      const wrap = document.createElement("div");
+      wrap.className = "check-wrap";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = (rec.status === s.key);
+
+      cb.addEventListener("change", () => {
+        // exclusive: if checked => set that status; if unchecked => clear
+        if(cb.checked){
+          setExclusiveStatus(activeFloor, room, s.key);
+        }else{
+          setExclusiveStatus(activeFloor, room, "");
+        }
+        // re-render row only (cheap enough: rebuild floor)
+        buildTableForFloor(activeFloor);
+        scheduleCloudSave(650);
+      });
+
+      wrap.appendChild(cb);
+      td.appendChild(wrap);
+      tr.appendChild(td);
+    });
+
+    // Notes
+    const tdNotes = document.createElement("td");
+    tdNotes.className = "notes-col";
+
+    const ta = document.createElement("textarea");
+    ta.className = "notes-input";
+    ta.rows = 1;
+    ta.placeholder = "Notes / violations…";
+    ta.value = rec.notes || "";
+
+    ta.addEventListener("input", () => {
+      rec.notes = ta.value;
+      autoResize(ta);
+      scheduleCloudSave(750);
+    });
+
+    // resize after insert
+    setTimeout(() => autoResize(ta), 0);
+
+    tdNotes.appendChild(ta);
+    tr.appendChild(tdNotes);
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===========================
+   CLEAR FLOOR
+   =========================== */
+function clearCurrentFloor(){
+  const floor = String(activeFloor);
+  const cfg = floorConfigs[floor];
+  if(!cfg) return;
+
+  cfg.rooms.forEach(roomNum => {
+    const room = String(roomNum);
+    const rec = ensureRoom(floor, room);
+    rec.status = "";
+    rec.notes = "";
+  });
+
+  buildTableForFloor(floor);
+  scheduleCloudSave(650);
+}
+
+/* ===========================
+   BOOT
+   =========================== */
 async function boot(){
-  setSyncStatus("", "Local ready");
+  setSyncStatus("warn", "Sync: loading...");
 
   // Load local first (instant)
   const local = loadLocal();
-  if(local){
-    state = Object.assign(newBlankState(), local);
+  if(local && typeof local === "object"){
+    state = local;
   }
 
-  // Apply date from state
+  // Fill date from local
   const dateEl = document.getElementById("inspectionDate");
-  if(dateEl){
-    dateEl.value = state.inspectionDate || "";
-    dateEl.addEventListener("change", () => {
-      state.inspectionDate = dateEl.value || "";
-      touchAndScheduleSave();
-    });
-  }
+  if(dateEl) dateEl.value = state.inspectionDate || "";
 
   // Render default floor
-  renderFloorTable("2");
+  buildTableForFloor(activeFloor);
+
+  // Then load cloud (cloud wins if it has data)
+  try{
+    const cloud = await cloudGet();
+    if(cloud && typeof cloud === "object" && (cloud.floors || cloud.inspectionDate || cloud.updatedAt)){
+      state = cloud;
+
+      if(dateEl) dateEl.value = state.inspectionDate || "";
+      buildTableForFloor(activeFloor);
+
+      saveLocal();
+      setSyncStatus("ok", "Sync: loaded");
+    }else{
+      setSyncStatus("ok", "Sync: ready");
+    }
+  }catch(e){
+    console.warn("Cloud load failed", e);
+    setSyncStatus("bad", "Sync: offline (local only)");
+  }
+
+  // Date changes
+  if(dateEl){
+    dateEl.addEventListener("change", () => {
+      state.inspectionDate = dateEl.value || "";
+      scheduleCloudSave(650);
+    });
+  }
 
   // Tabs
   const tabButtons = document.querySelectorAll(".tab-btn");
@@ -695,14 +738,16 @@ async function boot(){
     btn.addEventListener("click", () => {
       tabButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      renderFloorTable(btn.getAttribute("data-floor"));
+      buildTableForFloor(btn.getAttribute("data-floor"));
     });
   });
 
   // Buttons
   const printBtn = document.getElementById("btnPrintFloor");
   const clearBtn = document.getElementById("btnClearFloor");
+
   if(printBtn) printBtn.addEventListener("click", () => window.print());
+
   if(clearBtn){
     clearBtn.addEventListener("click", () => {
       if(confirm("Clear all statuses and notes for this floor?")){
@@ -710,34 +755,9 @@ async function boot(){
       }
     });
   }
-
-  // Now load cloud (cloud wins)
-  try{
-    setSyncStatus("busy", "Loading cloud…");
-    const cloud = await cloudGet();
-    if(cloud && typeof cloud === "object" && Object.keys(cloud).length){
-      // Merge into blank so we always have required structure
-      state = Object.assign(newBlankState(), cloud);
-      saveLocal();
-
-      // Update date UI
-      if(dateEl) dateEl.value = state.inspectionDate || "";
-
-      // Re-render active floor from cloud state
-      renderFloorTable(getActiveFloor());
-
-      setSyncStatus("ok", "Synced");
-    }else{
-      setSyncStatus("ok", "Synced (empty)");
-    }
-  }catch(e){
-    console.warn("Cloud load failed:", e);
-    setSyncStatus("bad", "Cloud offline (local only)");
-  }
 }
 
 document.addEventListener("DOMContentLoaded", boot);
 </script>
-
 </body>
 </html>
