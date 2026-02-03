@@ -1,60 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Holiday Inn — Room Inspection Checklist</title>
+
+<!-- iPad / iOS friendly meta -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Holiday Inn">
+
+<style>
+  :root{
+    --bg:#f7f8fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --shadow:0 10px 25px rgba(15,23,42,.18);
+    --radius:22px;
+
+    /* hub pastels */
+    --p1:#bfe3ff;  /* blue */
+    --p2:#ffd6e7;  /* pink */
+    --p3:#d8ffd6;  /* green */
+    --p4:#fff2bf;  /* yellow */
+    --p5:#e6d6ff;  /* purple */
+    --ring:#9acbff;
+
+    --hubNotesBg:#f6f1ff;
+    --hubNotesBorder:#e6ddff;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    padding:18px;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:linear-gradient(135deg,#f5f7ff,#e5f6ff);
+    color:var(--text);
+  }
+
+  .wrapper{ max-width:1040px; margin:0 auto; }
+
+  h1{
+    text-align:center;
+    margin:6px 0 2px;
+    font-size:1.8rem;
+    letter-spacing:.04em;
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:.9rem;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+
+  .date-row{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+    font-size:.9rem;
+    color:var(--text);
+  }
+  .date-row label{ font-weight:600; }
+  .date-row input[type="date"]{
+    padding:4px 8px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    font-size:.9rem;
+    background:#f9fafb;
+  }
+  .date-row input[type="date"]:focus{
+    outline:none;
+    border-color:var(--ring);
+    box-shadow:0 0 0 2px rgba(154,203,255,.55);
+    background:#fff;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 16px 20px;
+    border:1px solid rgba(148,163,184,.35);
+    overflow:hidden;
+  }
+
+  .card-header-band{
+    background:linear-gradient(90deg,#e5edff,#fdf2ff);
+    margin:-16px -16px 16px;
+    padding:10px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+  }
+
+  .card-header-text{ font-size:.82rem; color:var(--muted); }
+
+  .header-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  .btn-pill{
+    border:none;
+    border-radius:999px;
+    padding:7px 15px;
+    font-size:.8rem;
+    font-weight:600;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+    box-shadow:0 6px 14px rgba(59,130,246,.35);
+    transition:transform .08s ease, box-shadow .08s ease, opacity .08s ease;
+  }
+  .btn-pill span.icon{font-size:.9rem;}
+
+  .btn-print{ background:#2563eb; color:#fff; }
+  .btn-clear{
+    background:#fee2e2;
+    color:#991b1b;
+    box-shadow:0 6px 14px rgba(248,113,113,.35);
+  }
+  .btn-pill:active{ transform:translateY(1px); box-shadow:none; opacity:.9; }
+
+  .tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+    justify-content:center;
+  }
+
+  .tab-btn{
+    flex:1 1 90px;
+    border:none;
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:.9rem;
+    cursor:pointer;
+    background:#e5ecff;
+    color:#1f2937;
+    max-width:160px;
+    transition:transform .1s ease, box-shadow .1s ease, background .1s ease, color .1s ease;
+  }
+
+  .tab-btn[data-floor="2"]{ background:rgba(191,227,255,.9); }
+  .tab-btn[data-floor="3"]{ background:rgba(255,214,231,.95); }
+  .tab-btn[data-floor="4"]{ background:rgba(216,255,214,.95); }
+  .tab-btn[data-floor="5"]{ background:rgba(255,242,191,.95); }
+
+  .tab-btn.active{
+    background:#2563eb;
+    color:#fff;
+    box-shadow:0 6px 14px rgba(37,99,235,.45);
+    transform:translateY(-1px);
+    font-weight:600;
+  }
+  .tab-btn:active{ transform:translateY(0); box-shadow:none; }
+
+  .floor-blurb{ margin-bottom:6px; }
+  .floor-title{ font-size:1.05rem; font-weight:600; margin-bottom:4px; }
+
+  .badge-row{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:.72rem;
+    padding:2px 9px;
+    border-radius:999px;
+    margin-left:6px;
+  }
+  .badge-2{ background:var(--p1); }
+  .badge-3{ background:var(--p2); }
+  .badge-4{ background:var(--p3); }
+  .badge-5{ background:var(--p4); }
+
+  .helper-text{ font-size:.8rem; color:var(--muted); }
+
+  .table-wrap{
+    max-height:72vh;
+    overflow:auto;
+    border-radius:16px;
+    border:1px solid rgba(148,163,184,.35);
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.9rem;
+    background:#fff;
+  }
+
+  thead{
+    position:sticky;
+    top:0;
+    background:#eef2ff;
+    z-index:1;
+  }
+
+  th,td{
+    padding:7px 6px;
+    text-align:left;
+    vertical-align:top;
+  }
+
+  th{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:#4b5563;
+    border-bottom:1px solid #c7d2fe;
+    background:#eef2ff;
+  }
+
+  tbody tr:nth-child(even) td{ background:#f9fafb; }
+  tbody tr:nth-child(odd) td{ background:#ffffff; }
+  tbody tr:hover td{ background:#f1f5ff; }
+
+  .room-col{ width:70px; font-weight:600; white-space:nowrap; }
+  .check-col{ width:90px; text-align:center; }
+  .notes-col{ width:auto; }
+
+  .notes-input{
+    width:100%;
+    min-width:140px;
+    padding:5px 7px;
+    border-radius:12px;
+    border:1px solid var(--hubNotesBorder);
+    font-size:.85rem;
+    background:var(--hubNotesBg);
+    resize:none;
+    overflow:hidden;
+    line-height:1.3;
+  }
+  .notes-input:focus{
+    outline:none;
+    border-color:var(--ring);
+    box-shadow:0 0 0 2px rgba(154,203,255,.55);
+    background:#fff;
+  }
+
+  .check-wrap{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding-top:2px;
+  }
+  .check-wrap input[type="radio"]{
+    width:17px;
+    height:17px;
+    accent-color:#2563eb;
+    cursor:pointer;
+  }
+
+  .sync-pill{
+    font-size:.72rem;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.55);
+    background:#ffffffaa;
+    color:#334155;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .dot{
+    width:8px; height:8px; border-radius:999px; background:#94a3b8;
+    display:inline-block;
+  }
+  .dot.ok{ background:#16a34a; }
+  .dot.bad{ background:#dc2626; }
+  .dot.busy{ background:#2563eb; }
+
+  @media (max-width:700px){
+    body{ padding:10px; }
+    .card{ padding:12px 12px 16px; }
+    th,td{ padding:6px 4px; font-size:.8rem; }
+    .notes-input{ font-size:.8rem; }
+    .card-header-band{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .header-actions{ align-self:flex-end; }
+  }
+
+  /* Print mode */
+  @media print{
+    body{ background:#fff; padding:0; margin:0; }
+    .subtitle, .tabs, .card-header-band, .tab-btn, .btn-pill{ display:none !important; }
+    .wrapper{ max-width:none; margin:0; }
+    .card{ box-shadow:none; border:none; padding:0; margin:0; }
+    .table-wrap{ max-height:none; overflow:visible; border-radius:0; border:none; }
+    h1{ font-size:1.4rem; margin:0 0 4px 0; text-align:left; }
+    .date-row{ justify-content:flex-start; margin:0 0 6px 0; }
+    .date-row input[type="date"]{ border:none; padding:0 4px; border-radius:0; background:#fff; box-shadow:none; }
+    table{ font-size:.85rem; }
+    th,td{ padding:6px 4px; }
+    tbody tr:nth-child(even) td, tbody tr:nth-child(odd) td{ background:#ffffff; }
+    .notes-input{ background:#fff; border:1px solid #d1d5db; min-height:40px; }
+  }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+  <h1>The Holiday Inn — Room Inspection</h1>
+  <div class="subtitle">
+    Select a floor, mark <strong>Passed / Failed / Not Inspected</strong>, and record any violations or notes.
+  </div>
+
+  <div class="date-row">
+    <label for="inspectionDate">Inspection Date:</label>
+    <input type="date" id="inspectionDate" />
+  </div>
+
+  <div class="card">
+    <div class="card-header-band">
+      <div class="card-header-text">
+        Use the floor tabs below. Data is saved locally + synced to your Google Sheet for multi-computer use.
+        Use <strong>Create PDF</strong> when you’re ready to file or save a PDF.
+      </div>
+      <div class="header-actions">
+        <span class="sync-pill" id="syncPill" title="Sync status">
+          <span class="dot" id="syncDot"></span>
+          <span id="syncText">Local ready</span>
+        </span>
+        <button class="btn-pill btn-print" type="button" id="btnPrintFloor">
+          <span class="icon">🖨️</span><span>Create PDF</span>
+        </button>
+        <button class="btn-pill btn-clear" type="button" id="btnClearFloor">
+          <span class="icon">🧹</span><span>Clear Floor</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-floor="2">2nd Floor (200s)</button>
+      <button class="tab-btn" data-floor="3">3rd Floor (300s)</button>
+      <button class="tab-btn" data-floor="4">4th Floor (400s)</button>
+      <button class="tab-btn" data-floor="5">5th Floor (500s)</button>
+    </div>
+
+    <!-- Floor description -->
+    <div class="floor-blurb" id="floorBlurb"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="room-col">ROOM #</th>
+            <th class="check-col">PASSED</th>
+            <th class="check-col">FAILED</th>
+            <th class="check-col">NOT<br>INSPECTED</th>
+            <th class="notes-col">NOTES / VIOLATIONS</th>
+          </tr>
+        </thead>
+        <tbody id="floorBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
 /**
- * HOLIDAY INN ROOM LOG — CLOUD SYNC (GOOGLE APPS SCRIPT) + LOCAL BACKUP
+ * HOLIDAY INN ROOM LOG — FULL PAGE (LOCAL + CLOUD SYNC)
+ * Stores a single master state object so switching floors never loses data.
  *
- * Works with your EXISTING page:
- * - Anything marked data-save="1" is persisted
- * - Supports input + textarea + checkbox
- * - Keeps localStorage as backup
- * - Adds automatic cross-computer sync via your Apps Script Web App
+ * ✅ MULTI-COMPUTER SYNC via Apps Script Web App
+ * ✅ LOCAL BACKUP via localStorage
  */
 
-// ====== SET THESE 2 VALUES ======
+//// =========================
+//// 1) YOUR WEB APP SETTINGS
+//// =========================
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwEZQkE1u_63xdPR-0tVLKvZKopF5EuLJyH9aY_71HeWxfcqexP6tYjJm1HQmVXs7Xf/exec";
-const STATE_KEY  = "holiday_inn_inspection_state_v1"; // MUST match what your sheet stores
+const STATE_KEY  = "holiday_inn_inspection_state_v1";
+const CACHE_KEY  = "holiday_inn_roomlog_localcache_v2"; // local backup key (can be any name)
 
-// local backup cache key
-const CACHE_KEY = "holiday_inn_roomlog_localcache_v1";
-
-// debounce so we don't spam server
-let saveTimer = null;
-let isSaving = false;
-
-// ---------- LOCAL SAVE/LOAD ----------
-function buildPayloadFromPage(){
-  const data = {};
-  document.querySelectorAll('input[data-save="1"], textarea[data-save="1"]').forEach(el => {
-    if(!el.id) return;
-    if(el.type === "checkbox"){
-      data[el.id] = el.checked;
-    }else{
-      data[el.id] = el.value || "";
-    }
-  });
-  return data;
+//// =========================
+//// 2) FLOOR CONFIG
+//// =========================
+function range(start, end){
+  const out = [];
+  for(let i=start;i<=end;i++) out.push(i);
+  return out;
 }
 
-function applyPayloadToPage(data){
-  if(!data || typeof data !== "object") return;
+const floorConfigs = {
+  "2": {
+    label: "2nd Floor — 200 Rooms",
+    badgeClass: "badge-2",
+    badgeText: "Rooms 201–212, 214–226, 230–233",
+    helper: "Select one status per room and add notes for any violations or comments.",
+    rooms: [...range(201,212), ...range(214,226), ...range(230,233)]
+  },
+  "3": {
+    label: "3rd Floor — 300 Rooms",
+    badgeClass: "badge-3",
+    badgeText: "Rooms 301–312, 314–327, 329–331",
+    helper: "300 wing rooms.",
+    rooms: [...range(301,312), ...range(314,327), ...range(329,331)]
+  },
+  "4": {
+    label: "4th Floor — 400 Rooms",
+    badgeClass: "badge-4",
+    badgeText: "Rooms 401–412, 414–427, 429–431",
+    helper: "400 wing rooms.",
+    rooms: [...range(401,412), ...range(414,427), ...range(429,431)]
+  },
+  "5": {
+    label: "5th Floor — 500 Rooms",
+    badgeClass: "badge-5",
+    badgeText: "Rooms 501–512, 514–527, 529–531",
+    helper: "500 wing rooms.",
+    rooms: [...range(501,512), ...range(514,527), ...range(529,531)]
+  }
+};
 
-  Object.keys(data).forEach(id => {
-    const el = document.getElementById(id);
-    if(!el) return;
-
-    if(el.type === "checkbox"){
-      el.checked = !!data[id];
-    }else{
-      el.value = data[id];
-      if(el.tagName === "TEXTAREA"){
-        autoResize(el);
-      }
+//// =========================
+//// 3) MASTER STATE
+//// =========================
+function newBlankState(){
+  return {
+    version: 1,
+    updatedAt: "",
+    inspectionDate: "",
+    floors: {
+      "2": {},
+      "3": {},
+      "4": {},
+      "5": {}
     }
+  };
+}
+
+// status: "passed" | "failed" | "not" | ""
+function ensureRoom(state, floor, room){
+  const f = String(floor);
+  const r = String(room);
+  if(!state.floors[f]) state.floors[f] = {};
+  if(!state.floors[f][r]) state.floors[f][r] = { status:"", notes:"" };
+  return state.floors[f][r];
+}
+
+let state = newBlankState();
+
+//// =========================
+//// 4) UI HELPERS
+//// =========================
+function setSyncStatus(mode, text){
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncText");
+  dot.classList.remove("ok","bad","busy");
+  if(mode === "ok") dot.classList.add("ok");
+  else if(mode === "bad") dot.classList.add("bad");
+  else if(mode === "busy") dot.classList.add("busy");
+  label.textContent = text || "";
+}
+
+function autoResize(el){
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function getActiveFloor(){
+  const btn = document.querySelector(".tab-btn.active");
+  return btn ? btn.getAttribute("data-floor") : "2";
+}
+
+function renderBlurb(floor){
+  const cfg = floorConfigs[String(floor)];
+  const blurb = document.getElementById("floorBlurb");
+  if(!cfg || !blurb) return;
+
+  blurb.innerHTML = `
+    <div class="floor-title">
+      ${cfg.label}
+      <span class="badge-row ${cfg.badgeClass}">${cfg.badgeText}</span>
+    </div>
+    <div class="helper-text">${cfg.helper}</div>
+  `;
+}
+
+function renderFloorTable(floor){
+  const f = String(floor);
+  const cfg = floorConfigs[f];
+  if(!cfg) return;
+
+  renderBlurb(f);
+
+  const tbody = document.getElementById("floorBody");
+  tbody.innerHTML = "";
+
+  cfg.rooms.forEach(roomNum => {
+    const roomKey = String(roomNum);
+    const rec = ensureRoom(state, f, roomKey);
+
+    const tr = document.createElement("tr");
+
+    // Room #
+    const tdRoom = document.createElement("td");
+    tdRoom.className = "room-col";
+    tdRoom.textContent = roomKey;
+    tr.appendChild(tdRoom);
+
+    // Radio helper creator
+    function makeRadioCell(value){
+      const td = document.createElement("td");
+      td.className = "check-col";
+
+      const wrap = document.createElement("div");
+      wrap.className = "check-wrap";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `status_${f}_${roomKey}`;          // group per room
+      input.id = `status_${f}_${roomKey}_${value}`;   // unique id
+      input.checked = (rec.status === value);
+
+      input.addEventListener("change", () => {
+        rec.status = value;
+        touchAndScheduleSave();
+      });
+
+      wrap.appendChild(input);
+      td.appendChild(wrap);
+      return td;
+    }
+
+    tr.appendChild(makeRadioCell("passed"));
+    tr.appendChild(makeRadioCell("failed"));
+    tr.appendChild(makeRadioCell("not"));
+
+    // Notes
+    const tdNotes = document.createElement("td");
+    tdNotes.className = "notes-col";
+
+    const ta = document.createElement("textarea");
+    ta.className = "notes-input";
+    ta.id = `notes_${f}_${roomKey}`;
+    ta.rows = 1;
+    ta.placeholder = "Notes / violations...";
+    ta.value = rec.notes || "";
+
+    ta.addEventListener("input", () => {
+      rec.notes = ta.value || "";
+      autoResize(ta);
+      touchAndScheduleSave();
+    });
+
+    // initial resize
+    setTimeout(() => autoResize(ta), 0);
+
+    tdNotes.appendChild(ta);
+    tr.appendChild(tdNotes);
+
+    tbody.appendChild(tr);
   });
 }
 
-function saveLocal(payload){
+function clearCurrentFloor(){
+  const floor = getActiveFloor();
+  const cfg = floorConfigs[String(floor)];
+  if(!cfg) return;
+
+  cfg.rooms.forEach(roomNum => {
+    const rec = ensureRoom(state, floor, roomNum);
+    rec.status = "";
+    rec.notes = "";
+  });
+
+  renderFloorTable(floor);
+  touchAndScheduleSave(true);
+}
+
+//// =========================
+//// 5) LOCAL STORAGE
+//// =========================
+function saveLocal(){
   try{
-    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(state));
   }catch(e){
     console.warn("Local save failed", e);
   }
@@ -64,14 +595,18 @@ function loadLocal(){
   try{
     const raw = localStorage.getItem(CACHE_KEY);
     if(!raw) return null;
-    return JSON.parse(raw);
+    const obj = JSON.parse(raw);
+    if(!obj || typeof obj !== "object") return null;
+    return obj;
   }catch(e){
     console.warn("Local load failed", e);
     return null;
   }
 }
 
-// ---------- CLOUD GET/POST ----------
+//// =========================
+//// 6) CLOUD GET / POST
+//// =========================
 async function cloudGet(){
   const url = `${WEBAPP_URL}?key=${encodeURIComponent(STATE_KEY)}`;
   const res = await fetch(url, { method:"GET", cache:"no-store" });
@@ -81,7 +616,6 @@ async function cloudGet(){
 }
 
 async function cloudPost(payload){
-  // No custom headers (avoids preflight/CORS headaches)
   const res = await fetch(WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({ key: STATE_KEY, json: payload })
@@ -91,83 +625,119 @@ async function cloudPost(payload){
   return out;
 }
 
-// ---------- RESIZE ----------
-function autoResize(el){
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+//// =========================
+//// 7) SAVE PIPELINE (DEBOUNCE)
+//// =========================
+let saveTimer = null;
+let isSaving = false;
+
+function touchState(){
+  state.updatedAt = new Date().toISOString();
 }
 
-// ---------- SAVE PIPELINE ----------
-function scheduleCloudSave(ms=600){
+function touchAndScheduleSave(immediate=false){
+  touchState();
+  saveLocal();
+  scheduleCloudSave(immediate ? 50 : 700);
+}
+
+function scheduleCloudSave(ms){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    saveCloudNow().catch(err => console.warn("Cloud save failed:", err));
+    saveCloudNow().catch(err => {
+      console.warn("Cloud save failed:", err);
+      setSyncStatus("bad", "Cloud error (still saved locally)");
+    });
   }, ms);
 }
 
 async function saveCloudNow(){
   if(isSaving) return;
   isSaving = true;
-
-  const payload = buildPayloadFromPage();
-
-  // always local backup first
-  saveLocal(payload);
+  setSyncStatus("busy", "Syncing…");
 
   try{
-    await cloudPost(payload);
+    await cloudPost(state);
+    setSyncStatus("ok", "Synced");
   } finally {
     isSaving = false;
   }
 }
 
-// ---------- BOOT ----------
+//// =========================
+//// 8) BOOT
+//// =========================
 async function boot(){
-  // 1) Load local first so page "looks alive" instantly
-  const local = loadLocal();
-  if(local) applyPayloadToPage(local);
+  setSyncStatus("", "Local ready");
 
-  // 2) Then load cloud and apply (cloud wins)
-  try{
-    const cloud = await cloudGet();
-    if(cloud && typeof cloud === "object" && Object.keys(cloud).length){
-      applyPayloadToPage(cloud);
-      saveLocal(cloud); // keep local in sync
-    }
-  }catch(e){
-    console.warn("Cloud load failed (permissions/offline?)", e);
+  // Load local first (instant)
+  const local = loadLocal();
+  if(local){
+    state = Object.assign(newBlankState(), local);
   }
 
-  // 3) Wire up autosave for ANY data-save field
-  document.addEventListener("change", (e) => {
-    const t = e.target;
-    if(!t) return;
-    if(t.matches('input[data-save="1"], textarea[data-save="1"]')){
-      if(t.tagName === "TEXTAREA") autoResize(t);
-      saveLocal(buildPayloadFromPage());
-      scheduleCloudSave(700);
-    }
+  // Apply date from state
+  const dateEl = document.getElementById("inspectionDate");
+  if(dateEl){
+    dateEl.value = state.inspectionDate || "";
+    dateEl.addEventListener("change", () => {
+      state.inspectionDate = dateEl.value || "";
+      touchAndScheduleSave();
+    });
+  }
+
+  // Render default floor
+  renderFloorTable("2");
+
+  // Tabs
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderFloorTable(btn.getAttribute("data-floor"));
+    });
   });
 
-  document.addEventListener("input", (e) => {
-    const t = e.target;
-    if(!t) return;
-    if(t.matches('textarea[data-save="1"]')){
-      autoResize(t);
-      saveLocal(buildPayloadFromPage());
-      scheduleCloudSave(800);
-    }
-    if(t.matches('input[data-save="1"]') && t.type !== "checkbox"){
-      saveLocal(buildPayloadFromPage());
-      scheduleCloudSave(900);
-    }
-  });
+  // Buttons
+  const printBtn = document.getElementById("btnPrintFloor");
+  const clearBtn = document.getElementById("btnClearFloor");
+  if(printBtn) printBtn.addEventListener("click", () => window.print());
+  if(clearBtn){
+    clearBtn.addEventListener("click", () => {
+      if(confirm("Clear all statuses and notes for this floor?")){
+        clearCurrentFloor();
+      }
+    });
+  }
 
-  // 4) If you have a "Clear Floor" button, it will still work with your own logic.
-  // (This script doesn't overwrite any of your existing functions.)
+  // Now load cloud (cloud wins)
+  try{
+    setSyncStatus("busy", "Loading cloud…");
+    const cloud = await cloudGet();
+    if(cloud && typeof cloud === "object" && Object.keys(cloud).length){
+      // Merge into blank so we always have required structure
+      state = Object.assign(newBlankState(), cloud);
+      saveLocal();
+
+      // Update date UI
+      if(dateEl) dateEl.value = state.inspectionDate || "";
+
+      // Re-render active floor from cloud state
+      renderFloorTable(getActiveFloor());
+
+      setSyncStatus("ok", "Synced");
+    }else{
+      setSyncStatus("ok", "Synced (empty)");
+    }
+  }catch(e){
+    console.warn("Cloud load failed:", e);
+    setSyncStatus("bad", "Cloud offline (local only)");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", boot);
 </script>
 
-
+</body>
+</html>
